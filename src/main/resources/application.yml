@@ -1,9 +1,9 @@
 server:
-  port: 8085
+  port: ${PORT:8085}
 
 spring:
   application:
-    name: projects.contributors-presentation
+    name: ${APP_NAME:projects.contributors-presentation}
     
 eureka:
   client:
