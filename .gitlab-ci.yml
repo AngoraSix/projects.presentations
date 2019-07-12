@@ -1,0 +1,53 @@
+image: docker:stable
+
+services:
+  - docker:dind
+
+stages:
+  - test
+  - build
+  
+before_script:
+  - apk add --no-cache git
+  - git clone --depth 1 https://github.com/rozagerardo/angorasix.parent-pom.git parent-pom
+  - mvn clean install -f ./parent-pom/pom.xml 
+  
+unit-tests:
+  image: maven:3-jdk-12-alpine
+  stage: test
+  script:
+    - mvn verify -B
+  artifacts:
+    paths:
+      - target/*.jar
+      
+integration-tests:
+  image: maven:3-jdk-12-alpine
+  stage: test
+  script: "mvn verify -B -Pintegration"
+  artifacts:
+    paths:
+      - target/*.jar
+      
+push-tag:
+  only:
+    - master
+  image: maven:3-jdk-12-alpine
+  stage: build
+  script: "mvn deploy -Ddocker -Ddockerfile.username=geroza -Ddockerfile.password=$DOCKER_SECRET -B"
+  artifacts:
+    paths:
+      - target/*.jar
+      
+push-latest:
+  only:
+    - tags
+    - release-candidate
+  except:
+    - branches
+  image: maven:3-jdk-12-alpine
+  stage: build
+  script: "mvn deploy -Ddocker=latest -Ddockerfile.username=geroza -Ddockerfile.password=$DOCKER_SECRET -B"
+  artifacts:
+    paths:
+      - target/*.jar
