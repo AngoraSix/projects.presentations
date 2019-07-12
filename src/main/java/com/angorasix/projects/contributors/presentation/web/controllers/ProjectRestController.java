@@ -14,6 +14,11 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("projects")
 public class ProjectRestController {
 
+  /**
+   * Get all projects - test.
+   * 
+   * @return hardcoded string just for test
+   */
   @GetMapping
   public String getAllProjects() {
     return "TODO - projects";

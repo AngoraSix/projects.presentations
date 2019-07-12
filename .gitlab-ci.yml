@@ -16,9 +16,6 @@ unit-tests:
   image: maven:3-jdk-12-alpine
   stage: test
   script:
-    - apk add --no-cache git
-    - git clone --depth 1 https://github.com/rozagerardo/angorasix.parent-pom.git parent-pom
-    - mvn clean install -f ./parent-pom2/pom.xml 
     - mvn verify -B
   artifacts:
     paths:
@@ -37,7 +34,7 @@ push-tag:
     - master
   image: maven:3-jdk-12-alpine
   stage: build
-  script: "mvn deploy -Ddocker -Ddockerfile.username=geroza -Ddockerfile.password=$DOCKER_SECRET -B"
+  script: "mvn deploy -Ddocker -Ddockerfile.username=geroza -Ddockerfile.password=$DOCKER_SECRET -DskipTests -Dspotbugs.skip=true -Dpmd.skip=true -Dcheckstyle.skip -B"
   artifacts:
     paths:
       - target/*.jar
@@ -50,7 +47,7 @@ push-latest:
     - branches
   image: maven:3-jdk-12-alpine
   stage: build
-  script: "mvn deploy -Ddocker=latest -Ddockerfile.username=geroza -Ddockerfile.password=$DOCKER_SECRET -B"
+  script: "mvn deploy -Ddocker=latest -Ddockerfile.username=geroza -Ddockerfile.password=$DOCKER_SECRET -DskipTests -Dspotbugs.skip=true -Dpmd.skip=true -Dcheckstyle.skip -B"
   artifacts:
     paths:
       - target/*.jar
