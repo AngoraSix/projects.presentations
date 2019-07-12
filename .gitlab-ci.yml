@@ -16,6 +16,9 @@ unit-tests:
   image: maven:3-jdk-12-alpine
   stage: test
   script:
+    - apk add --no-cache git
+    - git clone --depth 1 https://github.com/rozagerardo/angorasix.parent-pom.git parent-pom
+    - mvn clean install -f ./parent-pom2/pom.xml 
     - mvn verify -B
   artifacts:
     paths:
