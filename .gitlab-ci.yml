@@ -4,19 +4,31 @@ services:
   - docker:dind
 
 stages:
+  - build:parent
   - test
   - build
   
 before_script:
-  - apk add --no-cache git
-  - git clone --depth 1 https://github.com/rozagerardo/angorasix.parent-pom.git parent-pom
-  - mvn clean install -f ./parent-pom/pom.xml 
+  
+  
+build:parent:
+  image: maven:3-jdk-12-alpine
+  stage: build:parent
+  script:
+    - apk add --no-cache git
+    - git clone --depth 1 https://github.com/rozagerardo/angorasix.parent-pom.git parent-pom
+    - mvn clean install -f ./parent-pom/pom.xml 
+  artifacts:
+    paths:
+      - ~/.m2
   
 test:unit:
   image: maven:3-jdk-12-alpine
   stage: test
   script:
     - mvn verify -B
+  dependencies:
+    - build:parent
   artifacts:
     paths:
       - target/*.jar
@@ -25,6 +37,8 @@ test:integration:
   image: maven:3-jdk-12-alpine
   stage: test
   script: "mvn verify -B -Pintegration"
+  dependencies:
+    - build:parent
       
 docker:version-tag:
   only:
@@ -32,6 +46,7 @@ docker:version-tag:
   image: maven:3-jdk-12-alpine
   stage: build
   script: 
+    - apk add docker
     - docker ps
     - dockerd
     - docker ps
