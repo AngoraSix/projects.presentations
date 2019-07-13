@@ -2,18 +2,23 @@ cache:
   paths:
     - .m2/repository
     
+    
 variables:
   MAVEN_OPTS: "-Dmaven.repo.local=$CI_PROJECT_DIR/.m2/repository"
 
+
 image: docker:stable
+
 
 services:
   - docker:dind
+
 
 stages:
   - build:dependencies
   - test
   - build
+  
   
 build:dependencies:
   image: maven:3-jdk-12-alpine
@@ -24,6 +29,7 @@ build:dependencies:
     - mvn clean install -f ./parent-pom/pom.xml 
     - mvn dependency:resolve
   
+  
 test:unit:
   image: maven:3-jdk-12-alpine
   stage: test
@@ -33,10 +39,12 @@ test:unit:
     paths:
       - target/*.jar
       
+      
 test:integration:
   image: maven:3-jdk-12-alpine
   stage: test
   script: "mvn verify -B -Pintegration"
+      
       
 docker:version-tag:
   only:
@@ -49,6 +57,7 @@ docker:version-tag:
     - mvn dockerfile:build dockerfile:push -Ddockerfile.username=geroza -Ddockerfile.password=$DOCKER_SECRET -B 
   dependencies:
     - test:unit
+      
       
 docker:latest-tag:
   only:
