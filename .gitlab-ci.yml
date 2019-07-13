@@ -15,9 +15,6 @@ stages:
   - test
   - build
   
-before_script:
-  
-  
 build:dependencies:
   image: maven:3-jdk-12-alpine
   stage: build:dependencies
