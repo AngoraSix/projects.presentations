@@ -12,7 +12,7 @@ before_script:
   - git clone --depth 1 https://github.com/rozagerardo/angorasix.parent-pom.git parent-pom
   - mvn clean install -f ./parent-pom/pom.xml 
   
-unit-tests:
+test:unit:
   image: maven:3-jdk-12-alpine
   stage: test
   script:
@@ -21,25 +21,31 @@ unit-tests:
     paths:
       - target/*.jar
       
-integration-tests:
+test:integration:
   image: maven:3-jdk-12-alpine
   stage: test
   script: "mvn verify -B -Pintegration"
-  artifacts:
-    paths:
-      - target/*.jar
       
-push-tag:
+docker:version-tag:
   only:
     - master
   image: maven:3-jdk-12-alpine
   stage: build
-  script: "mvn deploy -Ddocker -Ddockerfile.username=geroza -Ddockerfile.password=$DOCKER_SECRET -DskipTests -Dspotbugs.skip=true -Dpmd.skip=true -Dcheckstyle.skip -B"
-  artifacts:
-    paths:
-      - target/*.jar
+  script: 
+    - docker ps
+    - dockerd
+    - docker ps
+    - usermod -a -G docker
+    - docker ps
+    - service docker start
+    - docker ps
+    - sudo service docker start
+    - docker ps
+    - mvn dockerfile:build dockerfile:push -Ddockerfile.username=geroza -Ddockerfile.password=$DOCKER_SECRET -B 
+  dependencies:
+    - test:unit
       
-push-latest:
+docker:latest-tag:
   only:
     - tags
     - release-candidate
@@ -47,7 +53,9 @@ push-latest:
     - branches
   image: maven:3-jdk-12-alpine
   stage: build
-  script: "mvn deploy -Ddocker=latest -Ddockerfile.username=geroza -Ddockerfile.password=$DOCKER_SECRET -DskipTests -Dspotbugs.skip=true -Dpmd.skip=true -Dcheckstyle.skip -B"
-  artifacts:
-    paths:
-      - target/*.jar
+  script: 
+    - dockerd
+    - mvn dockerfile:tag -Dproject.plugin.dockerfile.tag=latest -
+    - mvn dockerfile:build dockerfile:tag dockerfile:push -Ddockerfile.username=geroza -Ddockerfile.password=$DOCKER_SECRET -B
+  dependencies:
+    - test:unit
