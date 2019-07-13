@@ -1,3 +1,10 @@
+cache:
+  paths:
+    - .m2/repository
+    
+variables:
+  MAVEN_OPTS: "-Dmaven.repo.local=$CI_PROJECT_DIR/.m2/repository"
+
 image: docker:stable
 
 services:
@@ -18,9 +25,6 @@ build:parent:
     - apk add --no-cache git
     - git clone --depth 1 https://github.com/rozagerardo/angorasix.parent-pom.git parent-pom
     - mvn clean install -f ./parent-pom/pom.xml 
-  artifacts:
-    paths:
-      - ~/.m2
   
 test:unit:
   image: maven:3-jdk-12-alpine
@@ -37,8 +41,6 @@ test:integration:
   image: maven:3-jdk-12-alpine
   stage: test
   script: "mvn verify -B -Pintegration"
-  dependencies:
-    - build:parent
       
 docker:version-tag:
   only:
