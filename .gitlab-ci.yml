@@ -19,11 +19,7 @@ build:dependencies:
   image: maven:3-jdk-12-alpine
   stage: build:dependencies
   script:
-    - apk add docker
-    - usermod -a -G docker
-    - dockerd
-    - docker ps
-    - apk add --no-cache git
+    - apk add git
     - git clone --depth 1 https://github.com/rozagerardo/angorasix.parent-pom.git parent-pom
     - mvn clean install -f ./parent-pom/pom.xml 
     - mvn dependency:resolve
@@ -43,33 +39,26 @@ test:integration:
   script: "mvn verify -B -Pintegration"
       
 docker:version-tag:
+  image: maven:3-jdk-12-alpine
+  services:
+    - docker:latest
   only:
     - master
-  image: maven:3-jdk-12-alpine
   stage: build
   script: 
-    - apk add docker
-    - usermod -a -G docker
-    - dockerd
-    - docker ps
-    - mvn dockerfile:build dockerfile:push -Ddockerfile.username=geroza -Ddockerfile.password=$DOCKER_SECRET -B 
+    - mvn -Ddocker dockerfile:build dockerfile:push -Ddockerfile.username=geroza -Ddockerfile.password=$DOCKER_SECRET -B 
   dependencies:
     - test:unit
       
 docker:latest-tag:
+  image: maven:3-jdk-12-alpine
   only:
     - tags
     - release-candidate
   except:
     - branches
-  image: maven:3-jdk-12-alpine
   stage: build
   script: 
-    - apk add docker
-    - usermod -a -G docker
-    - dockerd
-    - docker ps
-    - mvn dockerfile:tag -Dproject.plugin.dockerfile.tag=latest -
     - mvn dockerfile:build dockerfile:tag dockerfile:push -Ddockerfile.username=geroza -Ddockerfile.password=$DOCKER_SECRET -B
   dependencies:
     - test:unit
