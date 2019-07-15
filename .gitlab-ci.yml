@@ -39,19 +39,15 @@ test:integration:
   script: "mvn verify -B -Pintegration"
       
 docker:version-tag:
-  image: maven:3-jdk-12-alpine
-  services:
-    - docker:latest
   only:
     - master
   stage: build
   script: 
-    - mvn -Ddocker dockerfile:build dockerfile:push -Ddockerfile.username=geroza -Ddockerfile.password=$DOCKER_SECRET -B 
+    - docker run --rm -v "$PWD":/usr/src/mymaven -v /var/run/docker.sock:/var/run/docker.sock -v "$CI_PROJECT_DIR/.m2":/root/.m2 -v "$PWD/target:/usr/src/mymaven/target" -w /usr/src/mymaven maven:3-jdk-12-alpine mvn -Ddocker dockerfile:build dockerfile:tag dockerfile:push -Ddockerfile.username=geroza -Ddockerfile.password=$DOCKER_SECRET -Ddockerfile.useMavenSettingsForAuth=false -B 
   dependencies:
     - test:unit
       
 docker:latest-tag:
-  image: maven:3-jdk-12-alpine
   only:
     - tags
     - release-candidate
@@ -59,7 +55,7 @@ docker:latest-tag:
     - branches
   stage: build
   script: 
-    - mvn dockerfile:build dockerfile:tag dockerfile:push -Ddockerfile.username=geroza -Ddockerfile.password=$DOCKER_SECRET -B
+    - docker run --rm -v "$PWD":/usr/src/mymaven -v /var/run/docker.sock:/var/run/docker.sock -v "$CI_PROJECT_DIR/.m2":/root/.m2 -v "$PWD/target:/usr/src/mymaven/target" -w /usr/src/mymaven maven:3-jdk-12-alpine mvn -Ddocker=latest dockerfile:build dockerfile:tag dockerfile:push -Ddockerfile.username=geroza -Ddockerfile.password=$DOCKER_SECRET -Ddockerfile.useMavenSettingsForAuth=false -B
   dependencies:
     - test:unit
     
