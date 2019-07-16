@@ -42,12 +42,7 @@ docker:version-tag:
   only:
     - master
   stage: build
-  image: docker:latest
-  variables:
-    CI_DEBUG_TRACE: "true"
   script: 
-    - echo $DOCKER_SECRET
-    - export
     - docker run --rm -v "$PWD":/usr/src/mymaven -v /var/run/docker.sock:/var/run/docker.sock -v "$CI_PROJECT_DIR/.m2":/root/.m2 -v "$PWD/target:/usr/src/mymaven/target" -w /usr/src/mymaven -e DOCKER_SECRET=$DOCKER_SECRET maven:3-jdk-12-alpine mvn -Ddocker dockerfile:build dockerfile:tag dockerfile:push  -s ./settings.xml -B -X
   dependencies:
     - test:unit
@@ -55,7 +50,7 @@ docker:version-tag:
 docker:latest-tag:
   only:
     - tags
-    - release-candidate
+    - /^latest-/
   except:
     - branches
   stage: build
