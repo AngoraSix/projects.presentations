@@ -26,7 +26,7 @@ build:dependencies:
     - mvn clean install -f ./parent-pom/pom.xml 
     - mvn dependency:resolve
       
-test:all:
+test:unit-integration:
   except:
     - tags
   image: maven:3-jdk-12-alpine
@@ -43,11 +43,10 @@ docker:version-tag:
   script: 
     - docker run --rm -v "$PWD":/usr/src/mymaven -v /var/run/docker.sock:/var/run/docker.sock -v "$CI_PROJECT_DIR/.m2":/root/.m2 -v "$PWD/target:/usr/src/mymaven/target" -w /usr/src/mymaven -e DOCKER_SECRET=$DOCKER_SECRET -e DOCKER_USER=$DOCKER_USER maven:3-jdk-12-alpine mvn -Ddocker dockerfile:build dockerfile:tag dockerfile:push  -s ./settings.xml -B
   dependencies:
-    - test:all
+    - test:unit-integration
       
 docker:latest-tag:
   only:
-    - tags
     - /^latest-/
   except:
     - branches
@@ -55,5 +54,5 @@ docker:latest-tag:
   script: 
     - docker run --rm -v "$PWD":/usr/src/mymaven -v /var/run/docker.sock:/var/run/docker.sock -v "$CI_PROJECT_DIR/.m2":/root/.m2 -v "$PWD/target:/usr/src/mymaven/target" -w /usr/src/mymaven -e DOCKER_SECRET=$DOCKER_SECRET -e DOCKER_USER=$DOCKER_USER maven:3-jdk-12-alpine mvn -Ddocker=latest dockerfile:build dockerfile:tag dockerfile:push  -s ./settings.xml -B
   dependencies:
-    - test:all
+    - test:unit-integration
     
