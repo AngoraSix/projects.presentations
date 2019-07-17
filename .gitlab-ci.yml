@@ -41,7 +41,7 @@ docker:version-tag:
     - master
   stage: build
   script: 
-    - docker run --rm -v "$PWD":/usr/src/mymaven -v /var/run/docker.sock:/var/run/docker.sock -v "$CI_PROJECT_DIR/.m2":/root/.m2 -v "$PWD/target:/usr/src/mymaven/target" -w /usr/src/mymaven -e DOCKER_SECRET=$DOCKER_SECRET maven:3-jdk-12-alpine mvn -Ddocker dockerfile:build dockerfile:tag dockerfile:push  -s ./settings.xml -B -X
+    - docker run --rm -v "$PWD":/usr/src/mymaven -v /var/run/docker.sock:/var/run/docker.sock -v "$CI_PROJECT_DIR/.m2":/root/.m2 -v "$PWD/target:/usr/src/mymaven/target" -w /usr/src/mymaven -e DOCKER_SECRET=$DOCKER_SECRET -e DOCKER_USER=$DOCKER_USER maven:3-jdk-12-alpine mvn -Ddocker dockerfile:build dockerfile:tag dockerfile:push  -s ./settings.xml -B
   dependencies:
     - test:all
       
@@ -53,7 +53,7 @@ docker:latest-tag:
     - branches
   stage: build
   script: 
-    - docker run --rm -v "$PWD":/usr/src/mymaven -v /var/run/docker.sock:/var/run/docker.sock -v "$CI_PROJECT_DIR/.m2":/root/.m2 -v "$PWD/target:/usr/src/mymaven/target" -w /usr/src/mymaven -e DOCKER_SECRET=$DOCKER_SECRET maven:3-jdk-12-alpine mvn -Ddocker=latest dockerfile:build dockerfile:tag dockerfile:push  -s ./settings.xml -B
+    - docker run --rm -v "$PWD":/usr/src/mymaven -v /var/run/docker.sock:/var/run/docker.sock -v "$CI_PROJECT_DIR/.m2":/root/.m2 -v "$PWD/target:/usr/src/mymaven/target" -w /usr/src/mymaven -e DOCKER_SECRET=$DOCKER_SECRET -e DOCKER_USER=$DOCKER_USER maven:3-jdk-12-alpine mvn -Ddocker=latest dockerfile:build dockerfile:tag dockerfile:push  -s ./settings.xml -B
   dependencies:
     - test:all
     
