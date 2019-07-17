@@ -3,7 +3,7 @@
   <servers>
     <server>
       <id>docker.io</id>
-      <username>geroza</username>
+      <username>${env.DOCKER_USER}</username>
       <password>${env.DOCKER_SECRET}</password>
     </server>
   </servers>
