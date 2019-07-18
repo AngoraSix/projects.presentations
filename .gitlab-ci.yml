@@ -13,11 +13,9 @@ services:
 stages:
   - build:dependencies
   - test
-  - build
+  - docker
   
 build:dependencies:
-  except:
-    - tags
   image: maven:3-jdk-12-alpine
   stage: build:dependencies
   script:
@@ -27,19 +25,21 @@ build:dependencies:
     - mvn dependency:resolve
       
 test:unit-integration:
-  except:
-    - tags
   image: maven:3-jdk-12-alpine
   stage: test
   script: "mvn verify -B -Pintegration"
   artifacts:
+    reports:
+      junit:
+        - target/surefire-reports/TEST-*.xml
+        - target/failsafe-reports/TEST-*.xml
     paths:
       - target/*.jar
       
 docker:version-tag:
   only:
     - master
-  stage: build
+  stage: docker
   script: 
     - docker run --rm -v "$PWD":/usr/src/mymaven -v /var/run/docker.sock:/var/run/docker.sock -v "$CI_PROJECT_DIR/.m2":/root/.m2 -v "$PWD/target:/usr/src/mymaven/target" -w /usr/src/mymaven -e DOCKER_SECRET=$DOCKER_SECRET -e DOCKER_USER=$DOCKER_USER maven:3-jdk-12-alpine mvn -Ddocker dockerfile:build dockerfile:tag dockerfile:push  -s ./settings.xml -B
   dependencies:
@@ -50,7 +50,7 @@ docker:latest-tag:
     - /^latest-/
   except:
     - branches
-  stage: build
+  stage: docker
   script: 
     - docker run --rm -v "$PWD":/usr/src/mymaven -v /var/run/docker.sock:/var/run/docker.sock -v "$CI_PROJECT_DIR/.m2":/root/.m2 -v "$PWD/target:/usr/src/mymaven/target" -w /usr/src/mymaven -e DOCKER_SECRET=$DOCKER_SECRET -e DOCKER_USER=$DOCKER_USER maven:3-jdk-12-alpine mvn -Ddocker=latest dockerfile:build dockerfile:tag dockerfile:push  -s ./settings.xml -B
   dependencies:

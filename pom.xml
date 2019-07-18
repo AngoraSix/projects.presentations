@@ -6,7 +6,7 @@
     <parent>
         <groupId>com.angorasix</groupId>
         <artifactId>parent-pom</artifactId>
-        <version>0.0.4-SNAPSHOT</version>
+        <version>0.0.5-SNAPSHOT</version>
         <relativePath>../../parent-pom</relativePath>
     </parent>
     <artifactId>projects.contributors-presentation</artifactId>
@@ -45,6 +45,9 @@
     <properties>
         <docker.image.prefix>geroza</docker.image.prefix>
         <docker.image.artifact>angorasix.projects.contributors-presentation</docker.image.artifact>
+        
+        <jacoco-coverage.class.line.min>0.20</jacoco-coverage.class.line.min>
+        <jacoco-coverage.class.branch.min>0.20</jacoco-coverage.class.branch.min>
     </properties>
 
 

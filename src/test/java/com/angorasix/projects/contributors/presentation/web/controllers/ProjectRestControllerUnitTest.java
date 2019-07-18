@@ -6,11 +6,12 @@ import org.junit.jupiter.api.Test;
 public class ProjectRestControllerUnitTest {
 
   @Test
-  public void cicd_test() {
-    String ger1 = "asd";
-    String ger2 = "asd";
+  public void coverageTest() {
+    ProjectRestController controller = new ProjectRestController();
+    
+    String output = controller.getAllProjects();
 
-    assertThat(ger1).isEqualTo(ger2);
+    assertThat(output).isEqualTo("TODO - projects");
   }
 
 }
