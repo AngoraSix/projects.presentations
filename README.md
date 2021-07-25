@@ -1,4 +1,4 @@
-# contributors project
+# Project Presentation project
 
 This project uses Quarkus, the Supersonic Subatomic Java Framework.
 
