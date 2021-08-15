@@ -5,8 +5,6 @@ import com.angorasix.contributors.domain.contributor.ProjectPresentation
 import com.angorasix.contributors.presentation.dto.ProjectPresentationDto
 import io.smallrye.mutiny.Multi
 import io.smallrye.mutiny.Uni
-import javax.enterprise.inject.Default
-import javax.inject.Inject
 import javax.ws.rs.GET
 import javax.ws.rs.Path
 import javax.ws.rs.PathParam
@@ -15,11 +13,7 @@ import javax.ws.rs.core.MediaType
 import javax.ws.rs.core.Response
 
 @Path("/projects-presentation")
-class ProjectsPresentationController {
-
-    @Inject
-    @field: Default
-    lateinit var service: ProjectsPresentationService
+class ProjectsPresentationController(private val service: ProjectsPresentationService) {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
