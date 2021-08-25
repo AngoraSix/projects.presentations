@@ -1,5 +1,6 @@
 package com.angorasix.contributors.domain.contributor
 
+import com.angorasix.projects.presentation.domain.projectpresentation.PresentationMedia
 import io.quarkus.mongodb.panache.reactive.ReactivePanacheMongoEntity
 
 /**
@@ -8,8 +9,7 @@ import io.quarkus.mongodb.panache.reactive.ReactivePanacheMongoEntity
  * @author rozagerardo
  */
 data class ProjectPresentation(
-    // val id: String,
     val projectId: String,
-    val description: String,
-    val images: MutableCollection<String> = mutableListOf<String>(),
+    val objective: String,
+    val media: Collection<PresentationMedia> = emptyList()
 ) : ReactivePanacheMongoEntity()
