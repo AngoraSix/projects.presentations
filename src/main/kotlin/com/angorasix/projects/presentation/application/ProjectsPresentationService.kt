@@ -58,4 +58,8 @@ class ProjectsPresentationService(private val repository: ProjectPresentationRep
         //         )
         //     )
     }
+
+    fun createProjectPresentations(projectPresentation: ProjectPresentation): Uni<ProjectPresentation>? {
+        return repository.persist(projectPresentation)
+    }
 }

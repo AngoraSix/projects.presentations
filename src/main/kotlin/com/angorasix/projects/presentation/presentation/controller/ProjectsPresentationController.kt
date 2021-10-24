@@ -43,6 +43,15 @@ class ProjectsPresentationController(private val service: ProjectsPresentationSe
             ?.onItem()
             ?.transform { it.convertToDto() }!!
     }
+
+    @POST
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("")
+    fun createProjectPresentation(newProject: ProjectPresentationDto): Uni<ProjectPresentationDto> {
+        return service.createProjectPresentations(newProject.convertToDomainObject())
+            ?.onItem()
+            ?.transform { it.convertToDto() }!!
+    }
 }
 
 private fun ProjectPresentation.convertToDto(): ProjectPresentationDto {
