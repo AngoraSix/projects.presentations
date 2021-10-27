@@ -19,17 +19,17 @@ class ProjectsPresentationController(private val service: ProjectsPresentationSe
     @Path("/{id}")
     fun getProjectPresentation(@PathParam("id") id: String): Uni<Response> {
         return service.findSingleProjectPresentation(id)
-            ?.onItem()
-            ?.transform { it.convertToDto() }
-            ?.onItem()
-            ?.transform {
-                Response.ok(it)
-                    .build()
-            } ?: Uni.createFrom()
-            .item(
-                Response.status(Response.Status.BAD_REQUEST)
-                    .build()
-            )
+                ?.onItem()
+                ?.transform { it.convertToDto() }
+                ?.onItem()
+                ?.transform {
+                    Response.ok(it)
+                            .build()
+                } ?: Uni.createFrom()
+                .item(
+                        Response.status(Response.Status.BAD_REQUEST)
+                                .build()
+                )
     }
 
     @GET
@@ -37,8 +37,8 @@ class ProjectsPresentationController(private val service: ProjectsPresentationSe
     @Path("")
     fun getProjectPresentations(): Multi<ProjectPresentationDto> {
         return service.findProjectPresentations()
-            ?.onItem()
-            ?.transform { it.convertToDto() }!!
+                ?.onItem()
+                ?.transform { it.convertToDto() }!!
     }
 
     @POST
@@ -46,34 +46,34 @@ class ProjectsPresentationController(private val service: ProjectsPresentationSe
     @Path("")
     fun createProjectPresentation(newProject: ProjectPresentationDto): Uni<ProjectPresentationDto> {
         return service.createProjectPresentations(newProject.convertToDomainObject())
-            ?.onItem()
-            ?.transform { it.convertToDto() }!!
+                ?.onItem()
+                ?.transform { it.convertToDto() }!!
     }
 }
 
 private fun ProjectPresentation.convertToDto(): ProjectPresentationDto {
-    return ProjectPresentationDto(id?.toString(),
-        projectId,
-        objective,
-        media.map { it.convertToDto() })
+    return ProjectPresentationDto(projectId,
+            objective,
+            media.map { it.convertToDto() },
+            id?.toString())
 }
 
 private fun ProjectPresentationDto.convertToDomainObject(): ProjectPresentation {
     return ProjectPresentation(projectId,
-        objective,
-        media.map { it.convertToDomain() })
+            objective,
+            media.map { it.convertToDomain() })
 }
 
 private fun PresentationMedia.convertToDto(): PresentationMediaDto {
     return PresentationMediaDto(
-        type,
-        url
+            type,
+            url
     )
 }
 
 private fun PresentationMediaDto.convertToDomain(): PresentationMedia {
     return PresentationMedia(
-        type,
-        url
+            type,
+            url
     )
 }

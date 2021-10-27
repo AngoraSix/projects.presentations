@@ -7,6 +7,7 @@ import com.mongodb.reactivestreams.client.MongoClient
 import io.quarkus.test.common.QuarkusTestResourceLifecycleManager
 import io.quarkus.vertx.http.runtime.attribute.DateTimeAttribute.DATE_TIME
 import org.bson.Document
+import org.bson.types.ObjectId
 import org.reactivestreams.Subscriber
 import org.reactivestreams.Subscription
 import org.testcontainers.containers.MongoDBContainer
@@ -57,12 +58,19 @@ class TestSubscriber : Subscriber<InsertManyResult> {
 
 const val DATE_TIME = "dateTime"
 const val CREATED_AT = "createdAt"
+const val ID = "_id"
 
 class DbInitializer {
     companion object {
         private fun mapCreatedAt(fieldsMap: MutableMap<String, Any>): Map<String, Any> {
             fieldsMap[DATE_TIME] = SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(fieldsMap[DATE_TIME] as String)
             return fieldsMap
+        }
+
+        private fun mapId(fieldsMap: MutableMap<String, Any>): ObjectId {
+//            fieldsMap[ID] = ObjectId(fieldsMap[ID] as String)
+//            return fieldsMap
+            return ObjectId(fieldsMap[ID] as String)
         }
 
         fun initializeDb(
@@ -79,11 +87,12 @@ class DbInitializer {
                     typeRef
                 )
             var documents = dataEntries.map { entry ->
-                entry[CREATED_AT] = mapCreatedAt(entry[CREATED_AT] as MutableMap<String, Any>)
+//                entry[CREATED_AT] = mapCreatedAt(entry[CREATED_AT] as MutableMap<String, Any>)
+                entry[ID] = mapId(entry)
                 Document(entry)
             }
             val collection = mongoClient.getDatabase("a6-projectpresentations")
-                .getCollection("projectpresentations")
+                .getCollection("ProjectPresentation")
             collection.insertMany(documents)
                 .subscribe(TestSubscriber())
         }
