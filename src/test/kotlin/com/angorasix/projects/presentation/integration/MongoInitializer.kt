@@ -32,7 +32,7 @@ class MongodbResource : QuarkusTestResourceLifecycleManager {
         // Serviria mapear a BSON??? (tiene metodo para pasar Map -> Bson directamente
         db.start()
         return mutableMapOf(
-            "quarkus.mongodb.connection-string" to "mongodb://${db.getContainerIpAddress()}:${db.getFirstMappedPort()}/a6-projectpresentations"
+                "quarkus.mongodb.connection-string" to "mongodb://${db.getContainerIpAddress()}:${db.getFirstMappedPort()}/a6-projectpresentations"
         )
     }
 
@@ -74,27 +74,27 @@ class DbInitializer {
         }
 
         fun initializeDb(
-            mongoClient: MongoClient,
-            objectMapper: ObjectMapper
+                mongoClient: MongoClient,
+                objectMapper: ObjectMapper
         ) {
-            val fileStream =
-                javaClass.classLoader.getResourceAsStream("integration-data--base.json") // val jsonString = String(fileStream.readAllBytes(), StandardCharsets.UTF_8)
+            val fileStream = DbInitializer::class.java.classLoader
+                    .getResourceAsStream("integration-data--base.json") // val jsonString = String(fileStream.readAllBytes(), StandardCharsets.UTF_8)
             val typeRef = object : TypeReference<Collection<MutableMap<String, Any>>>() {}
             println(fileStream)
             val dataEntries: Collection<MutableMap<String, Any>> =
-                objectMapper.readValue<Collection<MutableMap<String, Any>>>(
-                    fileStream,
-                    typeRef
-                )
+                    objectMapper.readValue<Collection<MutableMap<String, Any>>>(
+                            fileStream,
+                            typeRef
+                    )
             var documents = dataEntries.map { entry ->
 //                entry[CREATED_AT] = mapCreatedAt(entry[CREATED_AT] as MutableMap<String, Any>)
                 entry[ID] = mapId(entry)
                 Document(entry)
             }
             val collection = mongoClient.getDatabase("a6-projectpresentations")
-                .getCollection("ProjectPresentation")
+                    .getCollection("ProjectPresentation")
             collection.insertMany(documents)
-                .subscribe(TestSubscriber())
+                    .subscribe(TestSubscriber())
         }
     }
 }

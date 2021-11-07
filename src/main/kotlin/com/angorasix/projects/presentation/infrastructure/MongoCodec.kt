@@ -77,6 +77,8 @@ class PresentationMediaCodec : Codec<PresentationMedia> {
 }
 
 class ProjectPresentationCodecProvider : CodecProvider {
+
+    @Suppress("UNCHECKED_CAST")
     override operator fun <T> get(clazz: Class<T>, registry: CodecRegistry?): Codec<T>? {
         return when (clazz) {
             ProjectPresentation::class.java -> {
