@@ -48,3 +48,9 @@ If you want to learn more about building native executables, please consult http
 <p>A Hello World RESTEasy Reactive resource</p>
 
 Guide: https://quarkus.io/guides/getting-started-reactive
+
+# Jacoco coverage
+
+```shell script
+mvn verify
+```
