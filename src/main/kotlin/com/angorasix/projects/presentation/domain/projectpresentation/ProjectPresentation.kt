@@ -10,6 +10,7 @@ import io.quarkus.mongodb.panache.reactive.ReactivePanacheMongoEntity
  */
 data class ProjectPresentation(
     val projectId: String,
+    val title: String,
     val objective: String,
     val media: Collection<PresentationMedia> = emptyList()
 ) : ReactivePanacheMongoEntity()
