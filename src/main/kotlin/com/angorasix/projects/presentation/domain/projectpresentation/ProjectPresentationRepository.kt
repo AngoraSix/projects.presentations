@@ -9,4 +9,4 @@ import javax.enterprise.context.ApplicationScoped
  * @author rozagerardo
  */
 @ApplicationScoped
-class ProjectPresentationRepository: ReactivePanacheMongoRepository<ProjectPresentation> {}
+class ProjectPresentationRepository : ReactivePanacheMongoRepository<ProjectPresentation>

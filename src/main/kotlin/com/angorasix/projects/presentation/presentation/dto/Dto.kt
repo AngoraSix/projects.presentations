@@ -7,6 +7,7 @@ package com.angorasix.projects.presentation.presentation.dto
  */
 data class ProjectPresentationDto(
     val projectId: String,
+    val title: String,
     val objective: String,
     val media: Collection<PresentationMediaDto> = emptyList(),
     val id: String? = null,

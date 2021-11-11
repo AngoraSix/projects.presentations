@@ -1,15 +1,19 @@
 package com.angorasix.projects.presentation.presentation.controller
 
-import com.angorasix.projects.presentation.application.ProjectsPresentationService
 import com.angorasix.contributors.domain.contributor.ProjectPresentation
+import com.angorasix.projects.presentation.application.ProjectsPresentationService
 import com.angorasix.projects.presentation.domain.projectpresentation.PresentationMedia
 import com.angorasix.projects.presentation.presentation.dto.PresentationMediaDto
 import com.angorasix.projects.presentation.presentation.dto.ProjectPresentationDto
 import io.smallrye.mutiny.Multi
 import io.smallrye.mutiny.Uni
-import javax.ws.rs.*
+import javax.ws.rs.GET
+import javax.ws.rs.NotFoundException
+import javax.ws.rs.POST
+import javax.ws.rs.Path
+import javax.ws.rs.PathParam
+import javax.ws.rs.Produces
 import javax.ws.rs.core.MediaType
-import javax.ws.rs.core.Response
 
 @Path("/projects-presentation")
 class ProjectsPresentationController(private val service: ProjectsPresentationService) {
@@ -17,19 +21,15 @@ class ProjectsPresentationController(private val service: ProjectsPresentationSe
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/{id}")
-    fun getProjectPresentation(@PathParam("id") id: String): Uni<Response> {
+    fun getProjectPresentation(@PathParam("id") id: String): Uni<ProjectPresentationDto> {
         return service.findSingleProjectPresentation(id)
-                ?.onItem()
-                ?.transform { it.convertToDto() }
-                ?.onItem()
-                ?.transform {
-                    Response.ok(it)
-                            .build()
-                } ?: Uni.createFrom()
-                .item(
-                        Response.status(Response.Status.BAD_REQUEST)
-                                .build()
-                )
+            .onItem()
+            .ifNotNull()
+            .transform { it.convertToDto() }
+            // if not found
+            .onItem()
+            .ifNull()
+            .failWith(NotFoundException("Project Presentation not found"))
     }
 
     @GET
@@ -37,8 +37,8 @@ class ProjectsPresentationController(private val service: ProjectsPresentationSe
     @Path("")
     fun getProjectPresentations(): Multi<ProjectPresentationDto> {
         return service.findProjectPresentations()
-                ?.onItem()
-                ?.transform { it.convertToDto() }!!
+            .onItem()
+            .transform { it.convertToDto() }
     }
 
     @POST
@@ -46,34 +46,40 @@ class ProjectsPresentationController(private val service: ProjectsPresentationSe
     @Path("")
     fun createProjectPresentation(newProject: ProjectPresentationDto): Uni<ProjectPresentationDto> {
         return service.createProjectPresentations(newProject.convertToDomainObject())
-                ?.onItem()
-                ?.transform { it.convertToDto() }!!
+            .onItem()
+            .transform { it.convertToDto() }!!
     }
 }
 
 private fun ProjectPresentation.convertToDto(): ProjectPresentationDto {
-    return ProjectPresentationDto(projectId,
-            objective,
-            media.map { it.convertToDto() },
-            id?.toString())
+    return ProjectPresentationDto(
+        projectId,
+        title,
+        objective,
+        media.map { it.convertToDto() },
+        id?.toString()
+    )
 }
 
 private fun ProjectPresentationDto.convertToDomainObject(): ProjectPresentation {
-    return ProjectPresentation(projectId,
-            objective,
-            media.map { it.convertToDomain() })
+    return ProjectPresentation(
+        projectId,
+        title,
+        objective,
+        media.map { it.convertToDomain() }
+    )
 }
 
 private fun PresentationMedia.convertToDto(): PresentationMediaDto {
     return PresentationMediaDto(
-            type,
-            url
+        type,
+        url
     )
 }
 
 private fun PresentationMediaDto.convertToDomain(): PresentationMedia {
     return PresentationMedia(
-            type,
-            url
+        type,
+        url
     )
 }
