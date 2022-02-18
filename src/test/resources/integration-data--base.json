@@ -6,12 +6,22 @@
     "objective": "This is our objective",
     "media": [
       {
-        "type": "image",
-        "url": "https://imagessl.casadellibro.com/img/autores/156498.jpg"
+        "mediaType": "image",
+        "url": "https://imagessl.casadellibro.com/img/autores/156498.jpg",
+        "resourceId": "156498.jpg",
+        "thumbnailUrl": "https://imagessl.casadellibro.com/img/autores/156498.jpg"
       },
       {
-        "type": "image",
-        "url": "https://upload.wikimedia.org/wikipedia/commons/d/d2/Chojin_%283521733976%29.jpg"
+        "mediaType": "image",
+        "url": "https://upload.wikimedia.org/wikipedia/commons/d/d2/Chojin_%283521733976%29.jpg",
+        "resourceId": "Chojin_%283521733976%29.jpg",
+        "thumbnailUrl": "https://upload.wikimedia.org/wikipedia/commons/d/d2/Chojin_%283521733976%29.jpg"
+      },
+      {
+        "mediaType": "video.youtube",
+        "url": "https://www.youtube.com/embed/xdtTxwQfMQ8",
+        "resourceId": "xdtTxwQfMQ8",
+        "thumbnailUrl": "https://i.ytimg.com/vi/xdtTxwQfMQ8/sddefault.jpg"
       }
     ]
   },
@@ -22,8 +32,10 @@
     "objective": "Our objective at this stage includes one simple premise: We want to help people create",
     "media": [
       {
-        "type": "image",
-        "url": "https://upload.wikimedia.org/wikipedia/commons/3/3a/Bob-Marley-in-Concert_Zurich_05-30-80.jpg"
+        "mediaType": "image",
+        "url": "https://upload.wikimedia.org/wikipedia/commons/3/3a/Bob-Marley-in-Concert_Zurich_05-30-80.jpg",
+        "resourceId": "Bob-Marley-in-Concert_Zurich_05-30-80.jpg",
+        "thumbnailUrl": "https://upload.wikimedia.org/wikipedia/commons/3/3a/Bob-Marley-in-Concert_Zurich_05-30-80.jpg"
       }
     ]
   }
