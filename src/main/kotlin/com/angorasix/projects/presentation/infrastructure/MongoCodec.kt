@@ -19,12 +19,12 @@ import org.bson.types.ObjectId
 class ProjectPresentationCodec : CollectibleCodec<ProjectPresentation> {
 
     private val documentCodec: Codec<Document> = MongoClientSettings.getDefaultCodecRegistry()
-        .get(Document::class.java)
+            .get(Document::class.java)
 
     override fun encode(
-        writer: BsonWriter?,
-        projectPresentation: ProjectPresentation,
-        encoderContext: EncoderContext?
+            writer: BsonWriter?,
+            projectPresentation: ProjectPresentation,
+            encoderContext: EncoderContext?
     ) {
         val doc = Document()
         doc["_id"] = projectPresentation.id
@@ -54,12 +54,17 @@ class ProjectPresentationCodec : CollectibleCodec<ProjectPresentation> {
     override fun decode(reader: BsonReader?, decoderContext: DecoderContext?): ProjectPresentation {
         val document: Document = documentCodec.decode(reader, decoderContext)
         val presentationMedia = document.getList("media", Document::class.java)
-            .map { PresentationMedia(it.getString("type"), it.getString("url")) }
+                .map {
+                    PresentationMedia(it.getString("mediaType"),
+                            it.getString("url"),
+                            it.getString("thumbnailUrl"),
+                            it.getString("resourceId"))
+                }
         val projectPresentation = ProjectPresentation(
-            document.getString("projectId"),
-            document.getString("title"),
-            document.getString("objective"),
-            presentationMedia
+                document.getString("projectId"),
+                document.getString("title"),
+                document.getString("objective"),
+                presentationMedia
         )
         projectPresentation.id = document.getObjectId("_id")
         return projectPresentation
@@ -73,23 +78,30 @@ class ProjectPresentationCodec : CollectibleCodec<ProjectPresentation> {
 class PresentationMediaCodec : Codec<PresentationMedia> {
 
     private val documentCodec: Codec<Document> = MongoClientSettings.getDefaultCodecRegistry()
-        .get(Document::class.java)
+            .get(Document::class.java)
 
     override fun encode(
-        writer: BsonWriter?,
-        presentationMedia: PresentationMedia,
-        encoderContext: EncoderContext?
+            writer: BsonWriter?,
+            presentationMedia: PresentationMedia,
+            encoderContext: EncoderContext?
     ) {
         val doc = Document()
-        doc["type"] = presentationMedia.type
+        doc["mediaType"] = presentationMedia.mediaType
         doc["url"] = presentationMedia.url
+        doc["thumbnailUrl"] = presentationMedia.thumbnailUrl
+        doc["resourceId"] = presentationMedia.resourceId
 
         documentCodec.encode(writer, doc, encoderContext)
     }
 
     override fun decode(reader: BsonReader?, decoderContext: DecoderContext?): PresentationMedia {
         val document: Document = documentCodec.decode(reader, decoderContext)
-        return PresentationMedia(document.getString("type"), document.getString("url"))
+        return PresentationMedia(
+                document.getString("mediaType"),
+                document.getString("url"),
+                document.getString("thumbnailUrl"),
+                document.getString("resourceId")
+        )
     }
 
     override fun getEncoderClass(): Class<PresentationMedia> {
@@ -115,7 +127,9 @@ class ProjectPresentationCodecProvider : CodecProvider {
 
 private fun PresentationMedia.convertToDocument(): Document {
     val doc = Document()
-    doc["type"] = type
+    doc["mediaType"] = mediaType
     doc["url"] = url
+    doc["thumbnailUrl"] = thumbnailUrl
+    doc["resourceId"] = resourceId
     return doc
 }
