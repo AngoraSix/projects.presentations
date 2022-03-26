@@ -1,8 +1,6 @@
 <?xml version="1.0"?>
-<project
-  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd"
-  xmlns="http://maven.apache.org/POM/4.0.0"
-  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <modelVersion>4.0.0</modelVersion>
   <parent>
     <groupId>com.angorasix</groupId>
@@ -13,10 +11,9 @@
   <artifactId>projects.presentation</artifactId>
   <name>projects.presentation</name>
   <description>Projects Presentation Service</description>
-
   <properties>
-    <jacoco-coverage.class.line.min>0.20</jacoco-coverage.class.line.min>
     <jacoco-coverage.class.branch.min>0.20</jacoco-coverage.class.branch.min>
+    <jacoco-coverage.class.line.min>0.20</jacoco-coverage.class.line.min>
   </properties>
   <dependencyManagement>
     <dependencies>
@@ -41,6 +38,10 @@
     <dependency>
       <groupId>io.quarkus</groupId>
       <artifactId>quarkus-resteasy-reactive</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>io.quarkus</groupId>
+      <artifactId>quarkus-hibernate-validator</artifactId>
     </dependency>
     <dependency>
       <groupId>io.quarkus</groupId>
@@ -95,7 +96,6 @@
       <artifactId>kotlinx-serialization-json</artifactId>
       <version>${serialization.version}</version>
       <type>pom</type>
-      <!--      <scope>test</scope>-->
     </dependency>
   </dependencies>
   <build>
@@ -189,10 +189,10 @@
         <executions>
           <execution>
             <id>jacoco-check</id>
+            <phase>test</phase>
             <goals>
               <goal>check</goal>
             </goals>
-            <phase>test</phase>
             <configuration>
               <dataFile>${project.build.directory}/jacoco-quarkus.exec</dataFile>
               <rules>
@@ -216,46 +216,40 @@
           </execution>
         </executions>
       </plugin>
-      <!-- Checkstyle -->
       <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-antrun-plugin</artifactId>
         <version>${maven.antrun.version}</version>
         <executions>
           <execution>
             <id>ktlint</id>
             <phase>verify</phase>
-            <configuration>
-              <target name="ktlint">
-                <java taskname="ktlint" dir="${basedir}" fork="true" failonerror="true"
-                  classname="com.pinterest.ktlint.Main" classpathref="maven.plugin.classpath">
-                  <arg value="src/**/*.kt"/>
-                  <!-- to avoid generating report in checkstyle format remove following args: -->
-                  <arg value="--reporter=plain"/>
-                  <arg value="--reporter=checkstyle,output=${project.build.directory}/ktlint.xml"/>
-                  <!-- see https://github.com/pinterest/ktlint#usage for more -->
-                </java>
-              </target>
-            </configuration>
             <goals>
               <goal>run</goal>
             </goals>
+            <configuration>
+              <target name="ktlint">
+                <java fork="true" classname="com.pinterest.ktlint.Main" taskname="ktlint" failonerror="true" dir="${basedir}" classpathref="maven.plugin.classpath">
+                  <arg value="src/**/*.kt" />
+                  <arg value="--reporter=plain" />
+                  <arg value="--reporter=checkstyle,output=${project.build.directory}/ktlint.xml" />
+                </java>
+              </target>
+            </configuration>
           </execution>
           <execution>
             <id>ktlint-format</id>
             <phase>package</phase>
-            <configuration>
-              <target name="ktlint">
-                <java taskname="ktlint" dir="${basedir}" fork="true" failonerror="true"
-                  classname="com.pinterest.ktlint.Main" classpathref="maven.plugin.classpath">
-                  <arg value="-F"/>
-                  <arg value="src/**/*.kt"/>
-                </java>
-              </target>
-            </configuration>
             <goals>
               <goal>run</goal>
             </goals>
+            <configuration>
+              <target name="ktlint">
+                <java fork="true" classname="com.pinterest.ktlint.Main" taskname="ktlint" failonerror="true" dir="${basedir}" classpathref="maven.plugin.classpath">
+                  <arg value="-F" />
+                  <arg value="src/**/*.kt" />
+                </java>
+              </target>
+            </configuration>
           </execution>
         </executions>
         <dependencies>
@@ -264,22 +258,11 @@
             <artifactId>ktlint</artifactId>
             <version>${ktlint.version}</version>
           </dependency>
-          <!-- additional 3rd party ruleset(s) can be specified here -->
         </dependencies>
       </plugin>
-      <!-- PMD and CPD -->
       <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-pmd-plugin</artifactId>
         <version>${maven.pmd.version}</version>
-        <configuration>
-          <failOnViolation>true</failOnViolation>
-          <printFailingErrors>true</printFailingErrors>
-          <targetJdk>${java.version}</targetJdk>
-          <rulesets>
-            <ruleset>pmd/rulesets/angorasix-base-ruleset.xml</ruleset>
-          </rulesets>
-        </configuration>
         <executions>
           <execution>
             <goals>
@@ -294,8 +277,15 @@
             <version>${project.version}</version>
           </dependency>
         </dependencies>
+        <configuration>
+          <failOnViolation>true</failOnViolation>
+          <printFailingErrors>true</printFailingErrors>
+          <targetJdk>${java.version}</targetJdk>
+          <rulesets>
+            <ruleset>pmd/rulesets/angorasix-base-ruleset.xml</ruleset>
+          </rulesets>
+        </configuration>
       </plugin>
-      <!-- Findbugs / Spotbugs -> detekt -->
       <plugin>
         <groupId>com.github.ozsie</groupId>
         <artifactId>detekt-maven-plugin</artifactId>
@@ -336,11 +326,8 @@
                 </goals>
                 <configuration>
                   <systemPropertyVariables>
-                    <native.image.path>
-                      ${project.build.directory}/${project.build.finalName}-runner
-                    </native.image.path>
-                    <java.util.logging.manager>org.jboss.logmanager.LogManager
-                    </java.util.logging.manager>
+                    <native.image.path>${project.build.directory}/${project.build.finalName}-runner</native.image.path>
+                    <java.util.logging.manager>org.jboss.logmanager.LogManager</java.util.logging.manager>
                     <maven.home>${maven.home}</maven.home>
                   </systemPropertyVariables>
                 </configuration>

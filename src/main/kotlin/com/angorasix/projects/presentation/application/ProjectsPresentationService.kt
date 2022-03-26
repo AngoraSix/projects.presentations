@@ -1,11 +1,12 @@
 package com.angorasix.projects.presentation.application
 
-import com.angorasix.contributors.domain.contributor.ProjectPresentation
+import com.angorasix.projects.presentation.domain.projectpresentation.ProjectPresentation
 import com.angorasix.contributors.domain.contributor.ProjectPresentationRepository
 import io.smallrye.mutiny.Multi
 import io.smallrye.mutiny.Uni
 import org.bson.types.ObjectId
 import javax.enterprise.context.ApplicationScoped
+import javax.validation.Valid
 
 /**
  *
@@ -27,7 +28,7 @@ class ProjectsPresentationService(private val repository: ProjectPresentationRep
         return repository.streamAll()
     }
 
-    fun createProjectPresentations(projectPresentation: ProjectPresentation): Uni<ProjectPresentation> {
+    fun createProjectPresentations(@Valid projectPresentation: ProjectPresentation): Uni<ProjectPresentation> {
         return repository.persist(projectPresentation)
     }
 }
