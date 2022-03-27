@@ -1,12 +1,14 @@
 package com.angorasix.projects.presentation.integration
 
 import com.angorasix.projects.presentation.presentation.dto.PresentationMediaDto
+import com.angorasix.projects.presentation.presentation.dto.PresentationSectionDto
 import com.angorasix.projects.presentation.presentation.dto.ProjectPresentationDto
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.mongodb.reactivestreams.client.MongoClients
 import io.quarkus.test.common.QuarkusTestResource
 import io.quarkus.test.junit.QuarkusTest
 import io.restassured.RestAssured.given
+import org.apache.http.HttpStatus
 import org.eclipse.microprofile.config.inject.ConfigProperty
 import org.hamcrest.Matchers.`is`
 import org.hamcrest.Matchers.greaterThanOrEqualTo
@@ -17,6 +19,7 @@ import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import javax.inject.Inject
+import javax.ws.rs.core.HttpHeaders
 import javax.ws.rs.core.MediaType
 
 @QuarkusTest
@@ -40,46 +43,62 @@ class ProjectsPresentationIntegrationTest(
         given().`when`()
                 .get("/projects-presentation")
                 .then()
-                .statusCode(200)
+                .statusCode(HttpStatus.SC_OK)
                 .body(
                         "$.size()",
                         greaterThanOrEqualTo(2),
                         "projectId",
-                        hasItems("123", "345"),
-                        "objective",
-                        hasItem("This is our objective"),
-                        "title.size()",
-                        greaterThanOrEqualTo(2),
+                        hasItems("123withSingleSection", "345MultipleSections"),
+                        "sections.description",
+                        hasItem(hasItem("This is our objective")),
+                        "sections.title",
+                        hasItem(hasItem("Join a great project!")),
                 )
     }
 
     @Test
-    fun `when post new Project Presentation - then new project presetation is persisted`() {
+    fun `when post new Project Presentation - then new project presentation is persisted`() {
         val projectPresentationBody = ProjectPresentationDto(
                 "567",
-                "a title",
-                "an objective",
-                listOf(PresentationMediaDto("image",
-                        "http://an.image.jpg",
-                        "http://an.image.jpg",
-                        "an.image.jpg"))
+                listOf(PresentationSectionDto("introduction",
+                        "this is a mocked project",
+                        listOf(PresentationMediaDto("image",
+                                "http://an.image.jpg",
+                                "http://an.image.jpg",
+                                "an.image.jpg")),
+                        PresentationMediaDto("video.youtube",
+                                "https://www.youtube.com/watch?v=tHisis4R3soURCeId",
+                                "http://a.video.jpg",
+                                "tHisis4R3soURCeId")))
         )
 
         val response = given().body(projectPresentationBody)
-                .header(javax.ws.rs.core.HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON)
+                .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON)
                 .`when`()
                 .post("/projects-presentation")
                 .then()
-                .statusCode(200)
+                .statusCode(HttpStatus.SC_OK)
                 .body(
                         "id",
                         `notNullValue`(),
                         "projectId",
                         `is`("567"),
-                        "objective",
-                        `is`("an objective"),
-                        "title",
-                        `is`("a title")
+                        "sections.size()",
+                        `is`(1),
+                        "sections[0].title",
+                        `is`("introduction"),
+                        "sections[0].description",
+                        `is`("this is a mocked project"),
+                        "sections[0].media.size()",
+                        `is`(1),
+                        "sections[0].mainMedia.mediaType",
+                        `is`("video.youtube"),
+                        "sections[0].mainMedia.url",
+                        `is`("https://www.youtube.com/watch?v=tHisis4R3soURCeId"),
+                        "sections[0].mainMedia.thumbnailUrl",
+                        `is`("http://a.video.jpg"),
+                        "sections[0].mainMedia.resourceId",
+                        `is`("tHisis4R3soURCeId")
                 )
     }
 
@@ -88,18 +107,26 @@ class ProjectsPresentationIntegrationTest(
         given().`when`()
                 .get("/projects-presentation/6178628cf8bc5c59d85948f1")
                 .then()
-                .statusCode(200)
+                .statusCode(HttpStatus.SC_OK)
                 .body(
                         "id",
                         `is`("6178628cf8bc5c59d85948f1"),
                         "projectId",
-                        `is`("123"),
-                        "objective",
-                        `is`("This is our objective"),
-                        "title",
-                        `is`("Join a great project!"),
-                        "media.size()",
-                        `is`(2)
+                        `is`("123withSingleSection"),
+                        "sections.description",
+                        hasItem("This is our objective"),
+                        "sections.title",
+                        hasItem("Join a great project!"),
+                        "sections[0].media.size()",
+                        `is`(3),
+                        "sections[0].mainMedia.resourceId",
+                        notNullValue(),
+                        "sections[0].mainMedia.thumbnailUrl",
+                        notNullValue(),
+                        "sections[0].mainMedia.url",
+                        notNullValue(),
+                        "sections[0].mainMedia.mediaType",
+                        notNullValue()
                 )
     }
 
@@ -108,44 +135,96 @@ class ProjectsPresentationIntegrationTest(
         given().`when`()
                 .get("/projects-presentation/nonexistingid")
                 .then()
-                .statusCode(404)
+                .statusCode(HttpStatus.SC_NOT_FOUND)
     }
 
     @Test
     fun `given new persisted presentation - when retrieved - then data matches`() {
         val projectPresentationBody = ProjectPresentationDto(
                 "789",
-                "another title",
-                "another objective",
-                listOf(PresentationMediaDto("image",
-                        "http://an.image.jpg",
-                        "http://an.image.jpg",
-                        "an.image.jpg"))
+
+                listOf(PresentationSectionDto("introduction",
+                        "this is a mocked project",
+                        listOf(PresentationMediaDto("image",
+                                "http://an.image.jpg",
+                                "http://an.image.jpg",
+                                "an.image.jpg")),
+                        PresentationMediaDto("video.youtube",
+                                "https://www.youtube.com/watch?v=tHisis4R3soURCeId",
+                                "http://a.video.jpg",
+                                "tHisis4R3soURCeId")))
         )
 
         val newProject = given().body(projectPresentationBody)
-                .header(javax.ws.rs.core.HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON)
+                .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON)
                 .`when`()
                 .post("/projects-presentation")
                 .then()
-                .statusCode(200)
+                .statusCode(HttpStatus.SC_OK)
                 .extract().`as`<ProjectPresentationDto>(ProjectPresentationDto::class.java)
 
         given().`when`()
                 .get("/projects-presentation/${newProject.id}")
                 .then()
-                .statusCode(200)
+                .statusCode(HttpStatus.SC_OK)
                 .body(
                         "id",
                         `is`(newProject.id),
                         "projectId",
                         `is`("789"),
-                        "objective",
-                        `is`("another objective"),
+                        "sections.size()",
+                        `is`(1),
+                        "sections[0].title",
+                        `is`("introduction"),
+                        "sections[0].description",
+                        `is`("this is a mocked project"),
+                        "sections[0].media.size()",
+                        `is`(1),
+                        "sections[0].mainMedia.mediaType",
+                        `is`("video.youtube"),
+                        "sections[0].mainMedia.url",
+                        `is`("https://www.youtube.com/watch?v=tHisis4R3soURCeId"),
+                        "sections[0].mainMedia.thumbnailUrl",
+                        `is`("http://a.video.jpg"),
+                        "sections[0].mainMedia.resourceId",
+                        `is`("tHisis4R3soURCeId")
+                )
+    }
+
+    @Test
+    fun `when post new Project Presentation without sections - then Bad Request response`() {
+        val response = given().body("{\n" +
+                "    \"projectId\": \"projectId456\"\n" +
+                "}")
+                .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON)
+                .`when`()
+                .post("/projects-presentation")
+                .then()
+                .statusCode(HttpStatus.SC_BAD_REQUEST)
+                .body(
                         "title",
-                        `is`("another title"),
-                        "media.size()",
-                        `is`(1)
+                        notNullValue(),
+                        "status",
+                        `is`(HttpStatus.SC_BAD_REQUEST)
+                )
+    }
+
+    @Test
+    fun `when post new Project Presentation with empty sections - then Bad Request response`() {
+        val projectPresentationBody = ProjectPresentationDto(
+                "567",
+                emptyList())
+        val response = given().body(projectPresentationBody)
+                .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON)
+                .`when`()
+                .post("/projects-presentation")
+                .then()
+                .statusCode(HttpStatus.SC_BAD_REQUEST)
+                .body(
+                        "status",
+                        `is`(HttpStatus.SC_BAD_REQUEST),
+                        "title",
+                        notNullValue()
                 )
     }
 }

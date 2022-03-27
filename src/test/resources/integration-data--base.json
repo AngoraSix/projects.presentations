@@ -1,41 +1,96 @@
 [
   {
     "_id": "6178628cf8bc5c59d85948f1",
-    "projectId": "123",
-    "title": "Join a great project!",
-    "objective": "This is our objective",
-    "media": [
+    "projectId": "123withSingleSection",
+    "sections": [
       {
-        "mediaType": "image",
-        "url": "https://imagessl.casadellibro.com/img/autores/156498.jpg",
-        "resourceId": "156498.jpg",
-        "thumbnailUrl": "https://imagessl.casadellibro.com/img/autores/156498.jpg"
-      },
-      {
-        "mediaType": "image",
-        "url": "https://upload.wikimedia.org/wikipedia/commons/d/d2/Chojin_%283521733976%29.jpg",
-        "resourceId": "Chojin_%283521733976%29.jpg",
-        "thumbnailUrl": "https://upload.wikimedia.org/wikipedia/commons/d/d2/Chojin_%283521733976%29.jpg"
-      },
-      {
-        "mediaType": "video.youtube",
-        "url": "https://www.youtube.com/embed/xdtTxwQfMQ8",
-        "resourceId": "xdtTxwQfMQ8",
-        "thumbnailUrl": "https://i.ytimg.com/vi/xdtTxwQfMQ8/sddefault.jpg"
+        "title": "Join a great project!",
+        "description": "This is our objective",
+        "media": [
+          {
+            "mediaType": "image",
+            "url": "https://imagessl.casadellibro.com/img/autores/156498.jpg",
+            "resourceId": "156498.jpg",
+            "thumbnailUrl": "https://imagessl.casadellibro.com/img/autores/156498.jpg"
+          },
+          {
+            "mediaType": "image",
+            "url": "https://upload.wikimedia.org/wikipedia/commons/d/d2/Chojin_%283521733976%29.jpg",
+            "resourceId": "Chojin_%283521733976%29.jpg",
+            "thumbnailUrl": "https://upload.wikimedia.org/wikipedia/commons/d/d2/Chojin_%283521733976%29.jpg"
+          },
+          {
+            "mediaType": "video.youtube",
+            "url": "https://www.youtube.com/embed/xdtTxwQfMQ8",
+            "resourceId": "xdtTxwQfMQ8",
+            "thumbnailUrl": "https://i.ytimg.com/vi/xdtTxwQfMQ8/sddefault.jpg"
+          }
+        ],
+        "mainMedia": {
+          "mediaType": "video.youtube",
+          "url": "https://www.youtube.com/embed/xdtTxwQfMQ8",
+          "resourceId": "xdtTxwQfMQ8",
+          "thumbnailUrl": "https://i.ytimg.com/vi/xdtTxwQfMQ8/sddefault.jpg"
+        }
       }
     ]
   },
   {
     "_id": "6178628cf8bc5c59d85948f2",
-    "projectId": "345",
-    "title": "A project presentation for a particular segment",
-    "objective": "Our objective at this stage includes one simple premise: We want to help people create",
-    "media": [
+    "projectId": "345MultipleSections",
+    "sections": [
       {
-        "mediaType": "image",
-        "url": "https://upload.wikimedia.org/wikipedia/commons/3/3a/Bob-Marley-in-Concert_Zurich_05-30-80.jpg",
-        "resourceId": "Bob-Marley-in-Concert_Zurich_05-30-80.jpg",
-        "thumbnailUrl": "https://upload.wikimedia.org/wikipedia/commons/3/3a/Bob-Marley-in-Concert_Zurich_05-30-80.jpg"
+        "title": "Introduction to a project presentation for a particular segment",
+        "description": "Our objective at this stage includes one simple premise: We want to help people create",
+        "media": [
+          {
+            "mediaType": "image",
+            "url": "https://upload.wikimedia.org/wikipedia/commons/3/3a/Bob-Marley-in-Concert_Zurich_05-30-80.jpg",
+            "resourceId": "Bob-Marley-in-Concert_Zurich_05-30-80.jpg",
+            "thumbnailUrl": "https://upload.wikimedia.org/wikipedia/commons/3/3a/Bob-Marley-in-Concert_Zurich_05-30-80.jpg"
+          }
+        ],
+        "mainMedia": {
+          "mediaType": "video.youtube",
+          "url": "https://www.youtube.com/embed/xdtTxwQfMQ8",
+          "resourceId": "xdtTxwQfMQ8",
+          "thumbnailUrl": "https://i.ytimg.com/vi/xdtTxwQfMQ8/sddefault.jpg"
+        }
+      },
+      {
+        "title": "Our vision",
+        "description": "Here we explain our vision. Helping people create, we leverage change, and we hope injecting some positive and rather selfless values in the infrastructure will have a positive impact on the projects' outputs as well.",
+        "media": [
+          {
+            "mediaType": "image",
+            "url": "https://upload.wikimedia.org/wikipedia/commons/3/3a/Bob-Marley-in-Concert_Zurich_05-30-80.jpg",
+            "resourceId": "Bob-Marley-in-Concert_Zurich_05-30-80.jpg",
+            "thumbnailUrl": "https://upload.wikimedia.org/wikipedia/commons/3/3a/Bob-Marley-in-Concert_Zurich_05-30-80.jpg"
+          },
+          {
+            "mediaType": "video.youtube",
+            "url": "https://www.youtube.com/watch?v=PSDDLGW5k9E",
+            "resourceId": "PSDDLGW5k9E",
+            "thumbnailUrl": "https://i.ytimg.com/vi/PSDDLGW5k9E/sddefault.jpg"
+          }
+        ],
+        "mainMedia": {
+          "mediaType": "image",
+          "url": "https://upload.wikimedia.org/wikipedia/commons/3/3a/Bob-Marley-in-Concert_Zurich_05-30-80.jpg",
+          "resourceId": "Bob-Marley-in-Concert_Zurich_05-30-80.jpg",
+          "thumbnailUrl": "https://upload.wikimedia.org/wikipedia/commons/3/3a/Bob-Marley-in-Concert_Zurich_05-30-80.jpg"
+        }
+      },
+      {
+        "title": "How do we help",
+        "description": "Now a mocked project activity. We want to build a specification for industries to be able to use standard, reusuable packages",
+        "media": [],
+        "mainMedia": {
+          "mediaType": "video.youtube",
+          "url": "https://www.youtube.com/watch?v=PSDDLGW5k9E",
+          "resourceId": "PSDDLGW5k9E",
+          "thumbnailUrl": "https://i.ytimg.com/vi/PSDDLGW5k9E/sddefault.jpg"
+        }
       }
     ]
   }

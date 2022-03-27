@@ -1,7 +1,8 @@
-package com.angorasix.contributors.domain.contributor
+package com.angorasix.projects.presentation.domain.projectpresentation
 
-import com.angorasix.projects.presentation.domain.projectpresentation.PresentationMedia
+import com.angorasix.projects.presentation.domain.projectpresentation.PresentationSection
 import io.quarkus.mongodb.panache.reactive.ReactivePanacheMongoEntity
+import javax.validation.constraints.NotEmpty
 
 /**
  *
@@ -9,8 +10,6 @@ import io.quarkus.mongodb.panache.reactive.ReactivePanacheMongoEntity
  * @author rozagerardo
  */
 data class ProjectPresentation(
-    val projectId: String,
-    val title: String,
-    val objective: String?,
-    val media: Collection<PresentationMedia> = emptyList()
+        val projectId: String,
+        @field:NotEmpty val sections: Collection<PresentationSection>
 ) : ReactivePanacheMongoEntity()

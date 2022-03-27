@@ -1,12 +1,15 @@
 package com.angorasix.projects.presentation.presentation.controller
 
-import com.angorasix.contributors.domain.contributor.ProjectPresentation
+import com.angorasix.projects.presentation.domain.projectpresentation.ProjectPresentation
 import com.angorasix.projects.presentation.application.ProjectsPresentationService
+import com.angorasix.projects.presentation.domain.projectpresentation.PresentationSection
 import com.angorasix.projects.presentation.domain.projectpresentation.PresentationMedia
+import com.angorasix.projects.presentation.presentation.dto.PresentationSectionDto
 import com.angorasix.projects.presentation.presentation.dto.PresentationMediaDto
 import com.angorasix.projects.presentation.presentation.dto.ProjectPresentationDto
 import io.smallrye.mutiny.Multi
 import io.smallrye.mutiny.Uni
+import javax.validation.Valid
 import javax.ws.rs.GET
 import javax.ws.rs.NotFoundException
 import javax.ws.rs.POST
@@ -44,7 +47,7 @@ class ProjectsPresentationController(private val service: ProjectsPresentationSe
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     @Path("")
-    fun createProjectPresentation(newProject: ProjectPresentationDto): Uni<ProjectPresentationDto> {
+    fun createProjectPresentation(@Valid newProject: @Valid ProjectPresentationDto): Uni<ProjectPresentationDto> {
         return service.createProjectPresentations(newProject.convertToDomainObject())
                 .onItem()
                 .transform { it.convertToDto() }!!
@@ -54,9 +57,7 @@ class ProjectsPresentationController(private val service: ProjectsPresentationSe
 private fun ProjectPresentation.convertToDto(): ProjectPresentationDto {
     return ProjectPresentationDto(
             projectId,
-            title,
-            objective,
-            media.map { it.convertToDto() },
+            sections.map { it.convertToDto() },
             id?.toString()
     )
 }
@@ -64,9 +65,25 @@ private fun ProjectPresentation.convertToDto(): ProjectPresentationDto {
 private fun ProjectPresentationDto.convertToDomainObject(): ProjectPresentation {
     return ProjectPresentation(
             projectId,
+            sections.map { it.convertToDomain() }
+    )
+}
+
+private fun PresentationSection.convertToDto(): PresentationSectionDto {
+    return PresentationSectionDto(
             title,
-            objective,
-            media.map { it.convertToDomain() }
+            description,
+            media.map { it.convertToDto() },
+            mainMedia?.convertToDto()
+    )
+}
+
+private fun PresentationSectionDto.convertToDomain(): PresentationSection {
+    return PresentationSection(
+            title,
+            description,
+            media.map { it.convertToDomain() },
+            mainMedia?.convertToDomain()
     )
 }
 
