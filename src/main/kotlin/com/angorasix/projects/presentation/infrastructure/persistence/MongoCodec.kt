@@ -21,7 +21,11 @@ class ProjectPresentationCodec : CollectibleCodec<ProjectPresentation> {
 
     private val documentCodec: Codec<Document> = MongoClientSettings.getDefaultCodecRegistry().get(Document::class.java)
 
-    override fun encode(writer: BsonWriter?, projectPresentation: ProjectPresentation, encoderContext: EncoderContext?) {
+    override fun encode(
+        writer: BsonWriter?,
+        projectPresentation: ProjectPresentation,
+        encoderContext: EncoderContext?
+    ) {
         documentCodec.encode(writer, projectPresentation.convertToDocument(), encoderContext)
     }
 
@@ -52,9 +56,14 @@ class ProjectPresentationCodec : CollectibleCodec<ProjectPresentation> {
 
 class PresentationSectionCodec : Codec<PresentationSection> {
 
-    private val documentCodec: Codec<Document> = MongoClientSettings.getDefaultCodecRegistry().get(Document::class.java)
+    private val documentCodec: Codec<Document> = MongoClientSettings.getDefaultCodecRegistry()
+        .get(Document::class.java)
 
-    override fun encode(writer: BsonWriter?, presentationSection: PresentationSection, encoderContext: EncoderContext?) {
+    override fun encode(
+        writer: BsonWriter?,
+        presentationSection: PresentationSection,
+        encoderContext: EncoderContext?
+    ) {
         documentCodec.encode(writer, presentationSection.convertToDocument(), encoderContext)
     }
 
@@ -144,9 +153,22 @@ private fun Document.convertToSection(): PresentationSection {
     val presentationMedia = getList("media", Document::class.java).map {
         it.convertToMedia()
     }
-    return PresentationSection(getString("title"), getString("description"), presentationMedia, get("mainMedia", Document::class.java).convertToMedia())
+    return PresentationSection(
+        getString("title"),
+        getString("description"),
+        presentationMedia,
+        get(
+            "mainMedia",
+            Document::class.java
+        ).convertToMedia()
+    )
 }
 
 private fun Document.convertToMedia(): PresentationMedia {
-    return PresentationMedia(getString("mediaType"), getString("url"), getString("thumbnailUrl"), getString("resourceId"))
+    return PresentationMedia(
+        getString("mediaType"),
+        getString("url"),
+        getString("thumbnailUrl"),
+        getString("resourceId")
+    )
 }
