@@ -9,8 +9,8 @@ package com.angorasix.projects.presentation.domain.projectpresentation
  * @author rozagerardo
  */
 class PresentationSection(
-        val title: String,
-        val description: String?,
-        val media: Collection<PresentationMedia> = emptyList(),
-        val mainMedia: PresentationMedia?,
+    val title: String,
+    val description: String?,
+    val media: Collection<PresentationMedia> = emptyList(),
+    val mainMedia: PresentationMedia,
 )

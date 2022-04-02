@@ -1,7 +1,7 @@
 package com.angorasix.projects.presentation.application
 
-import com.angorasix.projects.presentation.domain.projectpresentation.ProjectPresentation
 import com.angorasix.contributors.domain.contributor.ProjectPresentationRepository
+import com.angorasix.projects.presentation.domain.projectpresentation.ProjectPresentation
 import io.smallrye.mutiny.Multi
 import io.smallrye.mutiny.Uni
 import org.bson.types.ObjectId
