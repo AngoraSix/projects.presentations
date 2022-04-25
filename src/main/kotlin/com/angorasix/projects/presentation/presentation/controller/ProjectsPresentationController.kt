@@ -110,5 +110,5 @@ private fun PresentationMediaDto.convertToDomain(): PresentationMedia {
 }
 
 private fun MultivaluedMap<String, String>.toQueryFilter(): ListProjectPresentationsFilter {
-    return ListProjectPresentationsFilter(get(ProjectPresentationQueryParams.PROJECT_IDS.name)?.flatMap { it.split(",") })
+    return ListProjectPresentationsFilter(get(ProjectPresentationQueryParams.PROJECT_IDS.param)?.flatMap { it.split(",") })
 }

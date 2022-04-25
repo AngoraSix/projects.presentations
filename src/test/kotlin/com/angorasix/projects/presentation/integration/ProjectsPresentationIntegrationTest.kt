@@ -60,7 +60,7 @@ class ProjectsPresentationIntegrationTest(
     @Test
     fun `given base data - when call Get Project Presentation list filtering by projectId - then return filtered persisted projects`() {
         given().`when`()
-                .queryParam(ProjectPresentationQueryParams.PROJECT_IDS.name, "123withSingleSection")
+                .queryParam(ProjectPresentationQueryParams.PROJECT_IDS.param, "123withSingleSection")
                 .get("/projects-presentation")
                 .then()
                 .statusCode(HttpStatus.SC_OK)
