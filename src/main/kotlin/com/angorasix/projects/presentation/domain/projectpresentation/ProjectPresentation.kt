@@ -10,5 +10,6 @@ import javax.validation.constraints.NotEmpty
  */
 data class ProjectPresentation(
     val projectId: String,
+    val referenceName: String,
     @field:NotEmpty val sections: Collection<PresentationSection>
 ) : ReactivePanacheMongoEntity()

@@ -61,6 +61,7 @@ class ProjectsPresentationController(private val service: ProjectsPresentationSe
 private fun ProjectPresentation.convertToDto(): ProjectPresentationDto {
     return ProjectPresentationDto(
             projectId,
+            referenceName,
             sections.map { it.convertToDto() },
             id?.toString()
     )
@@ -69,6 +70,7 @@ private fun ProjectPresentation.convertToDto(): ProjectPresentationDto {
 private fun ProjectPresentationDto.convertToDomainObject(): ProjectPresentation {
     return ProjectPresentation(
             projectId,
+            referenceName,
             sections.map { it.convertToDomain() }
     )
 }

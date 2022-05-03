@@ -76,6 +76,7 @@ class ProjectsPresentationIntegrationTest(
     fun `when post new Project Presentation - then new project presentation is persisted`() {
         val projectPresentationBody = ProjectPresentationDto(
                 "567",
+                "newReferenceName",
                 listOf(
                         PresentationSectionDto(
                                 "introduction",
@@ -109,6 +110,8 @@ class ProjectsPresentationIntegrationTest(
                         `notNullValue`(),
                         "projectId",
                         `is`("567"),
+                        "referenceName",
+                        `is`("newReferenceName"),
                         "sections.size()",
                         `is`(1),
                         "sections[0].title",
@@ -139,6 +142,8 @@ class ProjectsPresentationIntegrationTest(
                         `is`("6178628cf8bc5c59d85948f1"),
                         "projectId",
                         `is`("123withSingleSection"),
+                        "referenceName",
+                        `is`("Project Presentation aimed to devs"),
                         "sections.description",
                         hasItem("This is our objective"),
                         "sections.title",
@@ -168,7 +173,7 @@ class ProjectsPresentationIntegrationTest(
     fun `given new persisted presentation - when retrieved - then data matches`() {
         val projectPresentationBody = ProjectPresentationDto(
                 "789",
-
+                "referenceName2",
                 listOf(
                         PresentationSectionDto(
                                 "introduction",
@@ -208,6 +213,8 @@ class ProjectsPresentationIntegrationTest(
                         `is`(newProject.id),
                         "projectId",
                         `is`("789"),
+                        "referenceName",
+                        `is`("referenceName2"),
                         "sections.size()",
                         `is`(1),
                         "sections[0].title",
@@ -251,6 +258,7 @@ class ProjectsPresentationIntegrationTest(
     fun `when post new Project Presentation with empty sections - then Bad Request response`() {
         val projectPresentationBody = ProjectPresentationDto(
                 "567",
+                "referenceName",
                 emptyList()
         )
         val response = given().body(projectPresentationBody)
