@@ -9,7 +9,7 @@ import javax.validation.constraints.NotEmpty
  * @author rozagerardo
  */
 data class ProjectPresentation(
-    val projectId: String,
-    val referenceName: String,
-    @field:NotEmpty val sections: Collection<PresentationSection>
+        val projectId: String,
+        var referenceName: String,
+        @field:NotEmpty var sections: Collection<PresentationSection>
 ) : ReactivePanacheMongoEntity()

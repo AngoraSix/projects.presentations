@@ -14,6 +14,7 @@ import javax.validation.Valid
 import javax.ws.rs.GET
 import javax.ws.rs.NotFoundException
 import javax.ws.rs.POST
+import javax.ws.rs.PUT
 import javax.ws.rs.Path
 import javax.ws.rs.PathParam
 import javax.ws.rs.Produces
@@ -55,6 +56,20 @@ class ProjectsPresentationController(private val service: ProjectsPresentationSe
         return service.createProjectPresentations(newProject.convertToDomainObject())
                 .onItem()
                 .transform { it.convertToDto() }!!
+    }
+
+    @PUT
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("/{id}")
+    fun updateProjectPresentation(@PathParam("id") id: String, @Valid updatedProject: @Valid ProjectPresentationDto): Uni<ProjectPresentationDto> {
+        return service.updateProjectPresentation(id, updatedProject.convertToDomainObject())
+                .onItem()
+                .ifNotNull()
+                .transform { it.convertToDto() }
+                // if not found
+                .onItem()
+                .ifNull()
+                .failWith(NotFoundException("Project Presentation not found"))
     }
 }
 
