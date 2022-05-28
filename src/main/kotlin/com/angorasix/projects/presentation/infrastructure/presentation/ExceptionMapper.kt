@@ -17,13 +17,27 @@ class ExceptionMapper {
 
     @ServerExceptionMapper
     fun mapException(ex: ValueInstantiationException):
-        RestResponse<ViolationReport>? {
-            val violation = Violation(ex.cause?.message, "must not be null")
-            val violationReport = ViolationReport(
+            RestResponse<ErrorResponse>? {
+        val violation = Violation(ex.cause?.message, "must not be null")
+        val violationReport = ViolationReport(
                 "Constraint Violation",
                 Response.Status.BAD_REQUEST,
                 listOf(violation)
-            )
-            return RestResponse.status(Response.Status.BAD_REQUEST, violationReport)
-        }
+        )
+        val errorResponse = ErrorResponse("Error deserializing JSON body - invalid field", "invalid_field", violationReport)
+        return RestResponse.status(Response.Status.BAD_REQUEST, errorResponse)
+    }
+
+    @ServerExceptionMapper
+    fun mapException(ex: IllegalArgumentException):
+            RestResponse<ErrorResponse>? {
+        val errorResponse = ErrorResponse(ex.message ?: "Illegal request argument presented", "illegal_argument", null)
+        return RestResponse.status(Response.Status.BAD_REQUEST, errorResponse)
+    }
+
+    data class ErrorResponse(
+            val message: String,
+            val code: String,
+            val violationReport: ViolationReport?,
+    )
 }

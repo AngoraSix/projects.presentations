@@ -9,6 +9,7 @@ import javax.validation.constraints.NotEmpty
  */
 data class ProjectPresentationDto(
     val projectId: String,
+    val referenceName: String,
     @field:NotEmpty val sections: Collection<PresentationSectionDto>,
     val id: String? = null,
 )

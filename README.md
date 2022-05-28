@@ -11,6 +11,10 @@ You can run your application in dev mode that enables live coding using:
 ./mvnw compile quarkus:dev
 ```
 
+## Debug using Intellij
+
+After running the app as indicated above, click on `Run` > `Attach to process`.
+
 ## Packaging and running the application
 
 The application can be packaged using:

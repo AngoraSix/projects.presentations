@@ -78,7 +78,6 @@ object DbInitializer {
         val fileStream = DbInitializer::class.java.classLoader
             .getResourceAsStream("integration-data--base.json")
         val typeRef = object : TypeReference<Collection<MutableMap<String, Any>>>() {}
-        println(fileStream)
         val dataEntries: Collection<MutableMap<String, Any>> =
             objectMapper.readValue<Collection<MutableMap<String, Any>>>(
                 fileStream,

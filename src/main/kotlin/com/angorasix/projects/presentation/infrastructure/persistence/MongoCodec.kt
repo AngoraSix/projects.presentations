@@ -22,9 +22,9 @@ class ProjectPresentationCodec : CollectibleCodec<ProjectPresentation> {
     private val documentCodec: Codec<Document> = MongoClientSettings.getDefaultCodecRegistry().get(Document::class.java)
 
     override fun encode(
-        writer: BsonWriter?,
-        projectPresentation: ProjectPresentation,
-        encoderContext: EncoderContext?
+            writer: BsonWriter?,
+            projectPresentation: ProjectPresentation,
+            encoderContext: EncoderContext?
     ) {
         documentCodec.encode(writer, projectPresentation.convertToDocument(), encoderContext)
     }
@@ -57,12 +57,12 @@ class ProjectPresentationCodec : CollectibleCodec<ProjectPresentation> {
 class PresentationSectionCodec : Codec<PresentationSection> {
 
     private val documentCodec: Codec<Document> = MongoClientSettings.getDefaultCodecRegistry()
-        .get(Document::class.java)
+            .get(Document::class.java)
 
     override fun encode(
-        writer: BsonWriter?,
-        presentationSection: PresentationSection,
-        encoderContext: EncoderContext?
+            writer: BsonWriter?,
+            presentationSection: PresentationSection,
+            encoderContext: EncoderContext?
     ) {
         documentCodec.encode(writer, presentationSection.convertToDocument(), encoderContext)
     }
@@ -117,6 +117,7 @@ private fun ProjectPresentation.convertToDocument(): Document {
     val doc = Document()
     doc["_id"] = id
     doc["projectId"] = projectId
+    doc["referenceName"] = referenceName
     doc["sections"] = sections.map { it.convertToDocument() }
     return doc
 }
@@ -144,7 +145,7 @@ private fun Document.convertToProjectPresentation(): ProjectPresentation {
     val sections = getList("sections", Document::class.java).map {
         it.convertToSection()
     }
-    val projectPresentation = ProjectPresentation(getString("projectId"), sections)
+    val projectPresentation = ProjectPresentation(getString("projectId"), getString("referenceName"), sections)
     projectPresentation.id = getObjectId("_id")
     return projectPresentation
 }
@@ -154,21 +155,21 @@ private fun Document.convertToSection(): PresentationSection {
         it.convertToMedia()
     }
     return PresentationSection(
-        getString("title"),
-        getString("description"),
-        presentationMedia,
-        get(
-            "mainMedia",
-            Document::class.java
-        ).convertToMedia()
+            getString("title"),
+            getString("description"),
+            presentationMedia,
+            get(
+                    "mainMedia",
+                    Document::class.java
+            ).convertToMedia()
     )
 }
 
 private fun Document.convertToMedia(): PresentationMedia {
     return PresentationMedia(
-        getString("mediaType"),
-        getString("url"),
-        getString("thumbnailUrl"),
-        getString("resourceId")
+            getString("mediaType"),
+            getString("url"),
+            getString("thumbnailUrl"),
+            getString("resourceId")
     )
 }
