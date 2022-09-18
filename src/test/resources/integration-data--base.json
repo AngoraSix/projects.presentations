@@ -1,6 +1,5 @@
 [
   {
-    "_id": "6178628cf8bc5c59d85948f1",
     "projectId": "123withSingleSection",
     "referenceName": "Project Presentation aimed to devs",
     "sections": [
@@ -37,7 +36,6 @@
     ]
   },
   {
-    "_id": "6178628cf8bc5c59d85948f2",
     "projectId": "345MultipleSections",
     "referenceName": "Extensive Project Presentation for stakeholders",
     "sections": [

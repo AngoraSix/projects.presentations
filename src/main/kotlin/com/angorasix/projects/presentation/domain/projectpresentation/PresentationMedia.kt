@@ -9,5 +9,5 @@ class PresentationMedia(
     val mediaType: String,
     val url: String,
     val thumbnailUrl: String,
-    val resourceId: String
+    val resourceId: String,
 )

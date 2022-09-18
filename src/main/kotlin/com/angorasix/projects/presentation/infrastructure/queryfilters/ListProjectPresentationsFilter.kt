@@ -8,5 +8,5 @@ package com.angorasix.projects.presentation.infrastructure.queryfilters
  * @author rozagerardo
  */
 data class ListProjectPresentationsFilter(
-        val projectIds: Collection<String>? = null,
+    val projectIds: Collection<String>? = null,
 )

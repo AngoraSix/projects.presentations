@@ -1,0 +1,14 @@
+context:
+  initializer:
+    classes: com.angorasix.projects.presentation.BeansInitializer
+server:
+  port: ${PORT:9083}
+
+spring:
+  config:
+    import: classpath:/api.yml
+  application:
+    name: ${APP_NAME:projects.presentation}
+  data:
+    mongodb:
+      uri: ${MONGO_DB_URI:mongodb://localhost:27017/a6-projectpresentations}
