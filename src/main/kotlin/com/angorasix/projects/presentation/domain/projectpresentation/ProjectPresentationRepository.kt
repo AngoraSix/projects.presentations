@@ -1,13 +1,13 @@
-package com.angorasix.contributors.domain.contributor
+package com.angorasix.projects.presentation.domain.projectpresentation
 
-import com.angorasix.projects.presentation.domain.projectpresentation.ProjectPresentation
-import io.quarkus.mongodb.panache.reactive.ReactivePanacheMongoRepository
-import javax.enterprise.context.ApplicationScoped
+import com.angorasix.projects.presentation.infrastructure.persistence.repository.ProjectPresentationFilterRepository
+import org.springframework.data.repository.kotlin.CoroutineSortingRepository
 
 /**
  *
  *
  * @author rozagerardo
  */
-@ApplicationScoped
-class ProjectPresentationRepository : ReactivePanacheMongoRepository<ProjectPresentation>
+interface ProjectPresentationRepository :
+    CoroutineSortingRepository<ProjectPresentation, String>,
+    ProjectPresentationFilterRepository

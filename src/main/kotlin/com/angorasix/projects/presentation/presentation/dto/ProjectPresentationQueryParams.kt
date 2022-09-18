@@ -1,4 +1,4 @@
-package com.angorasix.projects.presentation.presentation.controller
+package com.angorasix.projects.presentation.presentation.dto
 
 /**
  *
@@ -6,5 +6,5 @@ package com.angorasix.projects.presentation.presentation.controller
  * @author rozagerardo
  */
 enum class ProjectPresentationQueryParams(val param: String) {
-    PROJECT_IDS("projectIds")
+    PROJECT_IDS("projectIds"),
 }

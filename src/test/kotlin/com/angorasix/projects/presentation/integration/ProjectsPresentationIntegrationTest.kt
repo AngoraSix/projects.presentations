@@ -1,277 +1,317 @@
 package com.angorasix.projects.presentation.integration
 
-import com.angorasix.projects.presentation.presentation.controller.ProjectPresentationQueryParams
+import com.angorasix.projects.presentation.ProjectsPresentationApplication
+import com.angorasix.projects.presentation.domain.projectpresentation.ProjectPresentation
+import com.angorasix.projects.presentation.infrastructure.config.configurationproperty.api.ApiConfigs
+import com.angorasix.projects.presentation.integration.utils.IntegrationProperties
+import com.angorasix.projects.presentation.integration.utils.initializeMongodb
 import com.angorasix.projects.presentation.presentation.dto.PresentationMediaDto
 import com.angorasix.projects.presentation.presentation.dto.PresentationSectionDto
 import com.angorasix.projects.presentation.presentation.dto.ProjectPresentationDto
+import com.angorasix.projects.presentation.presentation.dto.ProjectPresentationQueryParams
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.mongodb.reactivestreams.client.MongoClients
-import io.quarkus.test.common.QuarkusTestResource
-import io.quarkus.test.junit.QuarkusTest
-import io.restassured.RestAssured.given
-import org.apache.http.HttpStatus
-import org.eclipse.microprofile.config.inject.ConfigProperty
-import org.hamcrest.Matchers.`is`
+import kotlinx.coroutines.runBlocking
 import org.hamcrest.Matchers.greaterThanOrEqualTo
 import org.hamcrest.Matchers.hasItem
 import org.hamcrest.Matchers.hasItems
-import org.hamcrest.Matchers.notNullValue
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.TestInstance
-import javax.inject.Inject
-import javax.ws.rs.core.HttpHeaders
-import javax.ws.rs.core.MediaType
+import org.junit.jupiter.api.fail
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.context.properties.EnableConfigurationProperties
+import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.data.mongodb.core.ReactiveMongoTemplate
+import org.springframework.data.mongodb.core.query.Criteria
+import org.springframework.data.mongodb.core.query.Query
+import org.springframework.http.HttpStatus
+import org.springframework.http.MediaType
+import org.springframework.test.context.TestPropertySource
+import org.springframework.test.web.reactive.server.WebTestClient
+import reactor.core.publisher.Mono
+import java.util.*
 
-@QuarkusTest
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
-@QuarkusTestResource(MongodbResource::class)
+@SpringBootTest(
+    classes = [ProjectsPresentationApplication::class],
+    webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
+)
+@TestPropertySource(locations = ["classpath:integration-application.properties"])
+@EnableConfigurationProperties(IntegrationProperties::class)
 class ProjectsPresentationIntegrationTest(
-        @Inject @ConfigProperty(name = "quarkus.mongodb.connection-string") private val mongoConnString: String?,
-        @Inject private val objectMapper: ObjectMapper?
+    @Autowired val mongoTemplate: ReactiveMongoTemplate,
+    @Autowired val mapper: ObjectMapper,
+    @Autowired val properties: IntegrationProperties,
+    @Autowired val webTestClient: WebTestClient,
+    @Autowired val apiConfigs: ApiConfigs,
 ) {
 
     @BeforeAll
-    fun setup() {
-        DbInitializer.initializeDb(
-                MongoClients.create(mongoConnString),
-                objectMapper!!
+    fun setUp() = runBlocking {
+        initializeMongodb(
+            properties.mongodb.baseJsonFile,
+            mongoTemplate,
+            mapper,
         )
     }
 
     @Test
     fun `given base data - when call Get Project Presentation list - then return all persisted projects`() {
-        given().`when`()
-                .get("/projects-presentation")
-                .then()
-                .statusCode(HttpStatus.SC_OK)
-                .body(
-                        "$.size()",
-                        greaterThanOrEqualTo(2),
-                        "projectId",
-                        hasItems("123withSingleSection", "345MultipleSections"),
-                        "sections.description",
-                        hasItem(hasItem("This is our objective")),
-                        "sections.title",
-                        hasItem(hasItem("Join a great project!")),
-                )
+        webTestClient.get()
+            .uri("/projects-presentation")
+            .accept(MediaType.APPLICATION_JSON)
+            .exchange()
+            .expectStatus().isOk.expectBody()
+            .jsonPath("$.size()").value(greaterThanOrEqualTo(2))
+            .jsonPath("$..id").exists()
+            .jsonPath("$..projectId").value(hasItems("123withSingleSection", "345MultipleSections"))
+            .jsonPath("$..sections..description")
+            .value(hasItem("Our objective at this stage includes one simple premise: We want to help people create"))
+            .jsonPath("$..sections..title")
+            .value(hasItem("Introduction to a project presentation for a particular segment"))
     }
 
     @Test
     fun `given base data - when call Get Project Presentation list filtering by projectId - then return filtered persisted projects`() {
-        given().`when`()
-                .queryParam(ProjectPresentationQueryParams.PROJECT_IDS.param, "123withSingleSection")
-                .get("/projects-presentation")
-                .then()
-                .statusCode(HttpStatus.SC_OK)
-                .body(
-                        "$.size()",
-                        greaterThanOrEqualTo(1),
-                        "projectId",
-                        hasItems("123withSingleSection"),
-                )
+        webTestClient.get()
+            .uri { builder ->
+                builder.path("/projects-presentation").queryParam(
+                    ProjectPresentationQueryParams.PROJECT_IDS.param,
+                    "123withSingleSection",
+                ).build()
+            }
+            .accept(MediaType.APPLICATION_JSON)
+            .exchange()
+            .expectStatus().isOk.expectBody()
+            .jsonPath("$.size()").value(greaterThanOrEqualTo(1))
+            .jsonPath("$..projectId").value(hasItems("123withSingleSection"))
+    }
+
+    @Test
+    fun `given base data - when retrieve Presentation by id - then existing is retrieved`() {
+        val initElementQuery = Query()
+        initElementQuery.addCriteria(
+            Criteria.where("referenceName")
+                .`is`("Project Presentation aimed to devs"),
+        )
+        val elementId =
+            mongoTemplate.findOne(initElementQuery, ProjectPresentation::class.java).block()?.id
+
+        webTestClient.get()
+            .uri("/projects-presentation/{projectPresentationId}", elementId)
+            .accept(MediaType.APPLICATION_JSON)
+            .exchange()
+            .expectStatus().isOk.expectBody()
+            .jsonPath("$.id")
+            .exists()
+            .jsonPath("$.projectId")
+            .isEqualTo("123withSingleSection")
+            .jsonPath("$.referenceName")
+            .isEqualTo("Project Presentation aimed to devs")
+            .jsonPath("$..sections..description")
+            .value(hasItem("This is our objective"))
+            .jsonPath("$..sections..title")
+            .value(hasItem("Join a great project!"))
+            .jsonPath("$.sections[0].media.size()")
+            .isEqualTo(3)
+            .jsonPath("sections[0].mainMedia.resourceId")
+            .exists()
+            .jsonPath("sections[0].mainMedia.thumbnailUrl")
+            .exists()
+            .jsonPath("sections[0].mainMedia.url")
+            .exists()
+            .jsonPath("sections[0].mainMedia.mediaType")
+            .exists()
+    }
+
+    @Test
+    fun `given base data - when get non-existing Presentation - then 404 response`() {
+        webTestClient.get()
+            .uri("/projects-presentation/non-existing-id")
+            .accept(MediaType.APPLICATION_JSON)
+            .exchange()
+            .expectStatus().isNotFound
     }
 
     @Test
     fun `when post new Project Presentation - then new project presentation is persisted`() {
         val projectPresentationBody = ProjectPresentationDto(
-                "567",
-                "newReferenceName",
-                listOf(
-                        PresentationSectionDto(
-                                "introduction",
-                                "this is a mocked project",
-                                listOf(
-                                        PresentationMediaDto(
-                                                "image",
-                                                "http://an.image.jpg",
-                                                "http://an.image.jpg",
-                                                "an.image.jpg"
-                                        )
-                                ),
-                                PresentationMediaDto(
-                                        "video.youtube",
-                                        "https://www.youtube.com/watch?v=tHisis4R3soURCeId",
-                                        "http://a.video.jpg",
-                                        "tHisis4R3soURCeId"
-                                )
-                        )
-                )
+            "567",
+            "newReferenceName",
+            listOf(
+                PresentationSectionDto(
+                    "introduction",
+                    "this is a mocked project",
+                    listOf(
+                        PresentationMediaDto(
+                            "image",
+                            "http://an.image.jpg",
+                            "http://an.image.jpg",
+                            "an.image.jpg",
+                        ),
+                    ),
+                    PresentationMediaDto(
+                        "video.youtube",
+                        "https://www.youtube.com/watch?v=tHisis4R3soURCeId",
+                        "http://a.video.jpg",
+                        "tHisis4R3soURCeId",
+                    ),
+                ),
+            ),
         )
-
-        val response = given().body(projectPresentationBody)
-                .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON)
-                .`when`()
-                .post("/projects-presentation")
-                .then()
-                .statusCode(HttpStatus.SC_OK)
-                .body(
-                        "id",
-                        `notNullValue`(),
-                        "projectId",
-                        `is`("567"),
-                        "referenceName",
-                        `is`("newReferenceName"),
-                        "sections.size()",
-                        `is`(1),
-                        "sections[0].title",
-                        `is`("introduction"),
-                        "sections[0].description",
-                        `is`("this is a mocked project"),
-                        "sections[0].media.size()",
-                        `is`(1),
-                        "sections[0].mainMedia.mediaType",
-                        `is`("video.youtube"),
-                        "sections[0].mainMedia.url",
-                        `is`("https://www.youtube.com/watch?v=tHisis4R3soURCeId"),
-                        "sections[0].mainMedia.thumbnailUrl",
-                        `is`("http://a.video.jpg"),
-                        "sections[0].mainMedia.resourceId",
-                        `is`("tHisis4R3soURCeId")
-                )
-    }
-
-    @Test
-    fun `given base data - when retrieve Presentation by id - then existing is retrieved`() {
-        given().`when`()
-                .get("/projects-presentation/6178628cf8bc5c59d85948f1")
-                .then()
-                .statusCode(HttpStatus.SC_OK)
-                .body(
-                        "id",
-                        `is`("6178628cf8bc5c59d85948f1"),
-                        "projectId",
-                        `is`("123withSingleSection"),
-                        "referenceName",
-                        `is`("Project Presentation aimed to devs"),
-                        "sections.description",
-                        hasItem("This is our objective"),
-                        "sections.title",
-                        hasItem("Join a great project!"),
-                        "sections[0].media.size()",
-                        `is`(3),
-                        "sections[0].mainMedia.resourceId",
-                        notNullValue(),
-                        "sections[0].mainMedia.thumbnailUrl",
-                        notNullValue(),
-                        "sections[0].mainMedia.url",
-                        notNullValue(),
-                        "sections[0].mainMedia.mediaType",
-                        notNullValue()
-                )
-    }
-
-    @Test
-    fun `given base data - when get non-existing Presentation - then 404 response`() {
-        given().`when`()
-                .get("/projects-presentation/nonexistingid")
-                .then()
-                .statusCode(HttpStatus.SC_NOT_FOUND)
+        webTestClient.post()
+            .uri("/projects-presentation")
+            .accept(MediaType.APPLICATION_JSON)
+            .header(apiConfigs.headers.contributor, mockRequestingContributorHeader(true))
+            .body(
+                Mono.just(projectPresentationBody),
+                ProjectPresentationDto::class.java,
+            )
+            .exchange()
+            .expectStatus().isCreated.expectBody()
+            .jsonPath("$.id").exists()
+            .jsonPath("$.projectId").isEqualTo("567")
+            .jsonPath("$.referenceName").isEqualTo("newReferenceName")
+            .jsonPath("$..sections.size()").isEqualTo(1)
+            .jsonPath("$.sections[0].title").isEqualTo("introduction")
+            .jsonPath("$.sections[0].description").isEqualTo("this is a mocked project")
+            .jsonPath("$.sections[0].media.size()").isEqualTo(1)
+            .jsonPath("$.sections[0].mainMedia.mediaType").isEqualTo("video.youtube")
+            .jsonPath("$.sections[0].mainMedia.url")
+            .isEqualTo("https://www.youtube.com/watch?v=tHisis4R3soURCeId")
+            .jsonPath("$.sections[0].mainMedia.thumbnailUrl").isEqualTo("http://a.video.jpg")
+            .jsonPath("$.sections[0].mainMedia.resourceId").isEqualTo("tHisis4R3soURCeId")
     }
 
     @Test
     fun `given new persisted presentation - when retrieved - then data matches`() {
         val projectPresentationBody = ProjectPresentationDto(
-                "789",
-                "referenceName2",
-                listOf(
-                        PresentationSectionDto(
-                                "introduction",
-                                "this is a mocked project",
-                                listOf(
-                                        PresentationMediaDto(
-                                                "image",
-                                                "http://an.image.jpg",
-                                                "http://an.image.jpg",
-                                                "an.image.jpg"
-                                        )
-                                ),
-                                PresentationMediaDto(
-                                        "video.youtube",
-                                        "https://www.youtube.com/watch?v=tHisis4R3soURCeId",
-                                        "http://a.video.jpg",
-                                        "tHisis4R3soURCeId"
-                                )
-                        )
-                )
+            "789",
+            "referenceName2",
+            listOf(
+                PresentationSectionDto(
+                    "introduction",
+                    "this is a mocked project",
+                    listOf(
+                        PresentationMediaDto(
+                            "image",
+                            "http://an.image.jpg",
+                            "http://an.image.jpg",
+                            "an.image.jpg",
+                        ),
+                    ),
+                    PresentationMediaDto(
+                        "video.youtube",
+                        "https://www.youtube.com/watch?v=tHisis4R3soURCeId",
+                        "http://a.video.jpg",
+                        "tHisis4R3soURCeId",
+                    ),
+                ),
+            ),
         )
+        val newProjectPresentation = webTestClient.post()
+            .uri("/projects-presentation")
+            .accept(MediaType.APPLICATION_JSON)
+            .header(apiConfigs.headers.contributor, mockRequestingContributorHeader(true))
+            .body(
+                Mono.just(projectPresentationBody),
+                ProjectPresentationDto::class.java,
+            )
+            .exchange()
+            .expectStatus().isCreated
+            .expectBody(ProjectPresentationDto::class.java)
+            .returnResult().responseBody ?: fail("Create operation retrieved empty response")
 
-        val newProject = given().body(projectPresentationBody)
-                .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON)
-                .`when`()
-                .post("/projects-presentation")
-                .then()
-                .statusCode(HttpStatus.SC_OK)
-                .extract().`as`<ProjectPresentationDto>(ProjectPresentationDto::class.java)
-
-        given().`when`()
-                .get("/projects-presentation/${newProject.id}")
-                .then()
-                .statusCode(HttpStatus.SC_OK)
-                .body(
-                        "id",
-                        `is`(newProject.id),
-                        "projectId",
-                        `is`("789"),
-                        "referenceName",
-                        `is`("referenceName2"),
-                        "sections.size()",
-                        `is`(1),
-                        "sections[0].title",
-                        `is`("introduction"),
-                        "sections[0].description",
-                        `is`("this is a mocked project"),
-                        "sections[0].media.size()",
-                        `is`(1),
-                        "sections[0].mainMedia.mediaType",
-                        `is`("video.youtube"),
-                        "sections[0].mainMedia.url",
-                        `is`("https://www.youtube.com/watch?v=tHisis4R3soURCeId"),
-                        "sections[0].mainMedia.thumbnailUrl",
-                        `is`("http://a.video.jpg"),
-                        "sections[0].mainMedia.resourceId",
-                        `is`("tHisis4R3soURCeId")
-                )
+        webTestClient.get()
+            .uri("/projects-presentation/${newProjectPresentation.id}")
+            .accept(MediaType.APPLICATION_JSON)
+            .exchange()
+            .expectStatus().isOk.expectBody()
+            .jsonPath("$.id").isEqualTo(newProjectPresentation?.id!!)
+            .jsonPath("$.projectId").isEqualTo("789")
+            .jsonPath("$.referenceName").isEqualTo("referenceName2")
+            .jsonPath("$..sections.size()").isEqualTo(1)
+            .jsonPath("$.sections[0].title").isEqualTo("introduction")
+            .jsonPath("$.sections[0].description").isEqualTo("this is a mocked project")
+            .jsonPath("$.sections[0].media.size()").isEqualTo(1)
+            .jsonPath("$.sections[0].mainMedia.mediaType").isEqualTo("video.youtube")
+            .jsonPath("$.sections[0].mainMedia.url")
+            .isEqualTo("https://www.youtube.com/watch?v=tHisis4R3soURCeId")
+            .jsonPath("$.sections[0].mainMedia.thumbnailUrl").isEqualTo("http://a.video.jpg")
+            .jsonPath("$.sections[0].mainMedia.resourceId").isEqualTo("tHisis4R3soURCeId")
     }
 
     @Test
-    fun `when post new Project Presentation without sections - then Bad Request response`() {
-        val response = given().body(
-                "{\n" +
-                        "    \"projectId\": \"projectId456\"\n" +
-                        "}"
-        )
-                .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON)
-                .`when`()
-                .post("/projects-presentation")
-                .then()
-                .statusCode(HttpStatus.SC_BAD_REQUEST)
-                .body(
-                        "title",
-                        notNullValue(),
-                        "status",
-                        `is`(HttpStatus.SC_BAD_REQUEST)
-                )
+    fun `when post new Project Presentation without sections - then Created response`() {
+        val projectPresentationBody = """
+            {
+              "projectId": "projectId456",
+              "referenceName": "mockedReferenceName"
+            }
+        """.trimIndent()
+        webTestClient.post()
+            .uri("/projects-presentation")
+            .contentType(MediaType.APPLICATION_JSON)
+            .accept(MediaType.APPLICATION_JSON)
+            .header(apiConfigs.headers.contributor, mockRequestingContributorHeader(true))
+            .body(
+                Mono.just(projectPresentationBody),
+                String::class.java,
+            )
+            .exchange()
+            .expectStatus().isCreated
+    }
+
+    @Test
+    fun `when post new Project Presentation without referenceName - then Bad Request response`() {
+        val projectPresentationBody = """
+            {
+              "projectId": "projectId456",
+              "sections": []
+            }
+        """.trimIndent()
+        webTestClient.post()
+            .uri("/projects-presentation")
+            .contentType(MediaType.APPLICATION_JSON)
+            .accept(MediaType.APPLICATION_JSON)
+            .header(apiConfigs.headers.contributor, mockRequestingContributorHeader(true))
+            .body(
+                Mono.just(projectPresentationBody),
+                String::class.java,
+            )
+            .exchange()
+            .expectStatus().isBadRequest
+            .expectBody()
+            .jsonPath("$.errorCode").isEqualTo("PROJECT_PRESENTATION_INVALID")
+            .jsonPath("$.error").exists()
+            .jsonPath("$.status").isEqualTo(HttpStatus.BAD_REQUEST.value())
+            .jsonPath("$.message").isEqualTo("ProjectPresentation referenceName expected")
     }
 
     @Test
     fun `when post new Project Presentation with empty sections - then Bad Request response`() {
         val projectPresentationBody = ProjectPresentationDto(
-                "567",
-                "referenceName",
-                emptyList()
+            "567",
+            "referenceName",
+            emptyList(),
         )
-        val response = given().body(projectPresentationBody)
-                .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON)
-                .`when`()
-                .post("/projects-presentation")
-                .then()
-                .statusCode(HttpStatus.SC_BAD_REQUEST)
-                .body(
-                        "status",
-                        `is`(HttpStatus.SC_BAD_REQUEST),
-                        "title",
-                        notNullValue()
-                )
+        webTestClient.post()
+            .uri("/projects-presentation")
+            .accept(MediaType.APPLICATION_JSON)
+            .header(apiConfigs.headers.contributor, mockRequestingContributorHeader(true))
+            .body(
+                Mono.just(projectPresentationBody),
+                ProjectPresentationDto::class.java,
+            )
+            .exchange()
+            .expectStatus().isCreated
+    }
+
+    private fun mockRequestingContributorHeader(asAdmin: Boolean = false): String {
+        val requestingContributorJson = """
+            {
+              "contributorId": "mockedContributorId1",
+              "projectAdmin": $asAdmin
+            }
+        """.trimIndent()
+        return Base64.getUrlEncoder().encodeToString(requestingContributorJson.toByteArray())
     }
 }
