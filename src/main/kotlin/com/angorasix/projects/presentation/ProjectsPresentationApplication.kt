@@ -2,6 +2,8 @@ package com.angorasix.projects.presentation
 
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication
+import org.springframework.hateoas.config.EnableHypermediaSupport
+import org.springframework.hateoas.support.WebStack
 
 /**
  * Spring Boot main class for Projects Presentation.
@@ -9,6 +11,10 @@ import org.springframework.boot.runApplication
  * @author rozagerardo
  */
 @SpringBootApplication
+@EnableHypermediaSupport(
+    type = [EnableHypermediaSupport.HypermediaType.HAL_FORMS],
+    stacks = [WebStack.WEBFLUX]
+)
 class ProjectsPresentationApplication
 
 /**

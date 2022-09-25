@@ -14,10 +14,11 @@ import com.angorasix.projects.presentation.presentation.dto.PresentationSectionD
 import com.angorasix.projects.presentation.presentation.dto.ProjectPresentationDto
 import com.angorasix.projects.presentation.presentation.dto.ProjectPresentationQueryParams
 import kotlinx.coroutines.flow.map
+import org.springframework.hateoas.IanaLinkRelations
 import org.springframework.hateoas.Link
+import org.springframework.hateoas.MediaTypes
 import org.springframework.hateoas.mediatype.Affordances
 import org.springframework.http.HttpMethod
-import org.springframework.http.MediaType
 import org.springframework.util.MultiValueMap
 import org.springframework.web.reactive.function.server.ServerRequest
 import org.springframework.web.reactive.function.server.ServerResponse
@@ -50,7 +51,7 @@ class ProjectsPresentationHandler(
         return service.findProjectPresentations(request.queryParams().toQueryFilter()).map {
             it.convertToDto(requestingContributor as? RequestingContributor, apiConfigs, request)
         }.let {
-            ok().contentType(MediaType.APPLICATION_JSON).bodyAndAwait(it)
+            ok().contentType(MediaTypes.HAL_FORMS_JSON).bodyAndAwait(it)
         }
     }
 
@@ -71,7 +72,7 @@ class ProjectsPresentationHandler(
                     apiConfigs,
                     request,
                 )
-            ok().contentType(MediaType.APPLICATION_JSON)
+            ok().contentType(MediaTypes.HAL_FORMS_JSON)
                 .bodyValueAndAwait(outputProjectPresentation)
         } ?: resolveNotFound("Can't find Project Presentation", "Project Presentation")
     }
@@ -96,9 +97,10 @@ class ProjectsPresentationHandler(
             }
             val outputProjectPresentation = service.createProjectPresentation(project)
                 .convertToDto(requestingContributor, apiConfigs, request)
-            created(URI.create("http://localhost:8080/gertest")).contentType(
-                MediaType.APPLICATION_JSON,
-            ).bodyValueAndAwait(outputProjectPresentation)
+            created(URI.create(outputProjectPresentation.links.getRequiredLink(IanaLinkRelations.SELF).href)).contentType(
+                MediaTypes.HAL_FORMS_JSON,
+            )
+                .bodyValueAndAwait(outputProjectPresentation)
         } else {
             resolveBadRequest("Invalid Contributor Header", "Contributor Header")
         }
@@ -129,8 +131,7 @@ class ProjectsPresentationHandler(
                     apiConfigs,
                     request,
                 )
-            ok().contentType(MediaType.APPLICATION_JSON)
-                .bodyValueAndAwait(outputProjectPresentation)
+            ok().contentType(MediaTypes.HAL_FORMS_JSON).bodyValueAndAwait(outputProjectPresentation)
         } ?: resolveNotFound("Can't update this project presentation", "Project Presentation")
     }
 }
