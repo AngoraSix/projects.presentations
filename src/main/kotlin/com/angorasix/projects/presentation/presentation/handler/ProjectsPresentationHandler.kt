@@ -97,9 +97,9 @@ class ProjectsPresentationHandler(
             }
             val outputProjectPresentation = service.createProjectPresentation(project)
                 .convertToDto(requestingContributor, apiConfigs, request)
-            created(URI.create(outputProjectPresentation.links.getRequiredLink(IanaLinkRelations.SELF).href)).contentType(
-                MediaTypes.HAL_FORMS_JSON,
-            )
+            val selfLink =
+                outputProjectPresentation.links.getRequiredLink(IanaLinkRelations.SELF).href
+            created(URI.create(selfLink)).contentType(MediaTypes.HAL_FORMS_JSON)
                 .bodyValueAndAwait(outputProjectPresentation)
         } else {
             resolveBadRequest("Invalid Contributor Header", "Contributor Header")
@@ -161,7 +161,7 @@ private fun PresentationSection.convertToDto(): PresentationSectionDto {
         title,
         description,
         media.map { it.convertToDto() },
-        mainMedia?.convertToDto(),
+        mainMedia.convertToDto(),
     )
 }
 
@@ -170,7 +170,7 @@ private fun PresentationSectionDto.convertToDomain(): PresentationSection {
         title,
         description,
         media?.map { it.convertToDomain() } ?: emptyList(),
-        mainMedia?.convertToDomain(),
+        mainMedia.convertToDomain(),
     )
 }
 
