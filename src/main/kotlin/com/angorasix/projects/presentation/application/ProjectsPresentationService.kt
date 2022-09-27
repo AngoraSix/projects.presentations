@@ -28,7 +28,7 @@ class ProjectsPresentationService(private val repository: ProjectPresentationRep
         val projectPresentationToUpdate =
             repository.findById(id).takeIf { it?.projectId == updateData.projectId }
                 ?: throw IllegalArgumentException("Provided 'projectId' doesn't match the Project Presentation one")
-        return projectPresentationToUpdate.updateWithData(updateData)?.let { repository.save(it) }
+        return projectPresentationToUpdate.updateWithData(updateData).let { repository.save(it) }
     }
 
     private fun ProjectPresentation.updateWithData(other: ProjectPresentation): ProjectPresentation {

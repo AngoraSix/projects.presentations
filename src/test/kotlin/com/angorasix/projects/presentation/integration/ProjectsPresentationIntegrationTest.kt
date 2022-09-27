@@ -225,7 +225,7 @@ class ProjectsPresentationIntegrationTest(
             .accept(MediaType.APPLICATION_JSON)
             .exchange()
             .expectStatus().isOk.expectBody()
-            .jsonPath("$.id").isEqualTo(newProjectPresentation?.id!!)
+            .jsonPath("$.id").isEqualTo(newProjectPresentation.id!!)
             .jsonPath("$.projectId").isEqualTo("789")
             .jsonPath("$.referenceName").isEqualTo("referenceName2")
             .jsonPath("$..sections.size()").isEqualTo(1)

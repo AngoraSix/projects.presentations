@@ -17,7 +17,7 @@ import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.impl.annotations.MockK
 import io.mockk.junit5.MockKExtension
-import kotlinx.coroutines.InternalCoroutinesApi
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flowOf
@@ -37,6 +37,7 @@ import org.springframework.web.reactive.function.server.EntityResponse
 import org.springframework.web.reactive.function.server.ServerRequest
 
 @ExtendWith(MockKExtension::class)
+@ExperimentalCoroutinesApi
 class ProjectsPresentationHandlerUnitTest {
 
     private lateinit var handler: ProjectsPresentationHandler
@@ -65,10 +66,8 @@ class ProjectsPresentationHandlerUnitTest {
         handler = ProjectsPresentationHandler(service, apiConfigs)
     }
 
-    @OptIn(InternalCoroutinesApi::class)
     @Test
     @Throws(Exception::class)
-    @kotlinx.coroutines.ExperimentalCoroutinesApi
     fun `Given existing project presentations - When list presentations - Then handler retrieves Ok Response`() =
         runBlockingTest {
             val mockedExchange = MockServerWebExchange.from(
