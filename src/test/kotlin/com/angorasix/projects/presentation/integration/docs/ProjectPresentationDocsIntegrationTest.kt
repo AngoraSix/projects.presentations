@@ -22,17 +22,20 @@ import org.springframework.context.ApplicationContext
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate
 import org.springframework.data.mongodb.core.query.Criteria
 import org.springframework.data.mongodb.core.query.Query
+import org.springframework.hateoas.MediaTypes
 import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
 import org.springframework.restdocs.RestDocumentationContextProvider
 import org.springframework.restdocs.RestDocumentationExtension
 import org.springframework.restdocs.headers.HeaderDocumentation.headerWithName
 import org.springframework.restdocs.headers.HeaderDocumentation.responseHeaders
+import org.springframework.restdocs.hypermedia.HypermediaDocumentation.halLinks
 import org.springframework.restdocs.hypermedia.HypermediaDocumentation.linkWithRel
 import org.springframework.restdocs.hypermedia.HypermediaDocumentation.links
 import org.springframework.restdocs.operation.preprocess.Preprocessors.preprocessResponse
 import org.springframework.restdocs.operation.preprocess.Preprocessors.prettyPrint
 import org.springframework.restdocs.payload.FieldDescriptor
+import org.springframework.restdocs.payload.JsonFieldType
 import org.springframework.restdocs.payload.PayloadDocumentation.beneathPath
 import org.springframework.restdocs.payload.PayloadDocumentation.fieldWithPath
 import org.springframework.restdocs.payload.PayloadDocumentation.requestFields
@@ -87,7 +90,14 @@ class ProjectPresentationDocsIntegrationTest(
         fieldWithPath("projectId").description("Identifier of the associated Project Id"),
         subsectionWithPath("sections[]").type(ArrayOfFieldType(PresentationSection::class.simpleName))
             .description("Array of the sections that form the project presentation"),
-        subsectionWithPath("links").description("HATEOAS links"),
+        subsectionWithPath("links").optional().description("HATEOAS links")
+            .type(JsonFieldType.ARRAY),// until we resolve and unify the list and single response links, all will be marked as optional
+        subsectionWithPath("_links").optional().description("HATEOAS links")
+            .type(JsonFieldType.OBJECT),
+        subsectionWithPath("_templates").optional()
+            .description("HATEOAS HAL-FORM links template info").type(
+                JsonFieldType.OBJECT,
+            ),
     )
 
     var projectPostBodyDescriptor = arrayOf<FieldDescriptor>(
@@ -152,6 +162,7 @@ class ProjectPresentationDocsIntegrationTest(
                 "/projects-presentation/",
             )
             .accept(MediaType.APPLICATION_JSON)
+            .contentType(MediaTypes.HAL_FORMS_JSON)
             .header(apiConfigs.headers.contributor, mockRequestingContributorHeader(true))
             .body(Mono.just(newProjectPresentation))
             .exchange()
@@ -165,6 +176,7 @@ class ProjectPresentationDocsIntegrationTest(
                         headerWithName(HttpHeaders.LOCATION).description("URL of the newly created project"),
                     ),
                     links(
+                        halLinks(),
                         linkWithRel("self").description("The self link"),
                         linkWithRel("updateProjectPresentation").description("The link for the edit presentation operation"),
                     ),

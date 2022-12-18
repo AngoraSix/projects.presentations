@@ -23,6 +23,7 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate
 import org.springframework.data.mongodb.core.query.Criteria
 import org.springframework.data.mongodb.core.query.Query
+import org.springframework.hateoas.MediaTypes
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.test.context.TestPropertySource
@@ -160,6 +161,7 @@ class ProjectsPresentationIntegrationTest(
         webTestClient.post()
             .uri("/projects-presentation")
             .accept(MediaType.APPLICATION_JSON)
+            .contentType(MediaTypes.HAL_FORMS_JSON)
             .header(apiConfigs.headers.contributor, mockRequestingContributorHeader(true))
             .body(
                 Mono.just(projectPresentationBody),
@@ -210,6 +212,7 @@ class ProjectsPresentationIntegrationTest(
         val newProjectPresentation = webTestClient.post()
             .uri("/projects-presentation")
             .accept(MediaType.APPLICATION_JSON)
+            .contentType(MediaTypes.HAL_FORMS_JSON)
             .header(apiConfigs.headers.contributor, mockRequestingContributorHeader(true))
             .body(
                 Mono.just(projectPresentationBody),
@@ -249,7 +252,7 @@ class ProjectsPresentationIntegrationTest(
         """.trimIndent()
         webTestClient.post()
             .uri("/projects-presentation")
-            .contentType(MediaType.APPLICATION_JSON)
+            .contentType(MediaTypes.HAL_FORMS_JSON)
             .accept(MediaType.APPLICATION_JSON)
             .header(apiConfigs.headers.contributor, mockRequestingContributorHeader(true))
             .body(
@@ -270,7 +273,7 @@ class ProjectsPresentationIntegrationTest(
         """.trimIndent()
         webTestClient.post()
             .uri("/projects-presentation")
-            .contentType(MediaType.APPLICATION_JSON)
+            .contentType(MediaTypes.HAL_FORMS_JSON)
             .accept(MediaType.APPLICATION_JSON)
             .header(apiConfigs.headers.contributor, mockRequestingContributorHeader(true))
             .body(
@@ -296,6 +299,7 @@ class ProjectsPresentationIntegrationTest(
         webTestClient.post()
             .uri("/projects-presentation")
             .accept(MediaType.APPLICATION_JSON)
+            .contentType(MediaTypes.HAL_FORMS_JSON)
             .header(apiConfigs.headers.contributor, mockRequestingContributorHeader(true))
             .body(
                 Mono.just(projectPresentationBody),
