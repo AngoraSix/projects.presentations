@@ -91,7 +91,8 @@ class ProjectPresentationDocsIntegrationTest(
         subsectionWithPath("sections[]").type(ArrayOfFieldType(PresentationSection::class.simpleName))
             .description("Array of the sections that form the project presentation"),
         subsectionWithPath("links").optional().description("HATEOAS links")
-            .type(JsonFieldType.ARRAY),// until we resolve and unify the list and single response links, all will be marked as optional
+            .type(JsonFieldType.ARRAY),
+        // until we resolve and unify the list and single response links, all will be marked as optional
         subsectionWithPath("_links").optional().description("HATEOAS links")
             .type(JsonFieldType.OBJECT),
         subsectionWithPath("_templates").optional()

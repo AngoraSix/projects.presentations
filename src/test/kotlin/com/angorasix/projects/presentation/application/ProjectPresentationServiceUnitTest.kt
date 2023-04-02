@@ -15,9 +15,8 @@ import io.mockk.junit5.MockKExtension
 import io.mockk.just
 import io.mockk.mockk
 import io.mockk.verifyAll
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.test.runBlockingTest
+import kotlinx.coroutines.test.runTest
 import org.assertj.core.api.AssertionsForClassTypes.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -39,7 +38,7 @@ class ProjectPresentationServiceUnitTest {
     @Throws(Exception::class)
     @kotlinx.coroutines.ExperimentalCoroutinesApi
     fun `given existing projects - when request find projects - then receive projects`() =
-        runBlockingTest {
+        runTest {
             val mockedProjectPresentation = ProjectPresentation(
                 "mockedProjectId",
                 "mockedReferenceName",
@@ -60,7 +59,7 @@ class ProjectPresentationServiceUnitTest {
     @Throws(Exception::class)
     @kotlinx.coroutines.ExperimentalCoroutinesApi
     fun givenExistingProjectPresentation_whenFindSingleProjectPresentations_thenServiceRetrievesMonoWithProjectPresentation() =
-        runBlockingTest {
+        runTest {
             val mockedProjectPresentationId = "id1"
             val mockedProjectPresentation = ProjectPresentation(
                 "mockedProjectId",
@@ -78,7 +77,7 @@ class ProjectPresentationServiceUnitTest {
     @Throws(Exception::class)
     @kotlinx.coroutines.ExperimentalCoroutinesApi
     fun whenCreateProjectPresentation_thenServiceRetrieveSavedProjectPresentation() =
-        runBlockingTest {
+        runTest {
             val mockedProjectPresentation = ProjectPresentation(
                 "mockedProjectId",
                 "mockedReferenceName",
@@ -100,7 +99,7 @@ class ProjectPresentationServiceUnitTest {
     @Throws(Exception::class)
     @kotlinx.coroutines.ExperimentalCoroutinesApi
     fun whenUpdateProjectPresentation_thenServiceRetrieveSavedProjectPresentation() =
-        runBlockingTest {
+        runTest {
             val mockedExistingProjectPresentation = mockk<ProjectPresentation>()
             every {
                 mockedExistingProjectPresentation.setProperty(ProjectPresentation::referenceName.name) value "mockedUpdatedReferenceName"
@@ -142,7 +141,7 @@ class ProjectPresentationServiceUnitTest {
     @Throws(Exception::class)
     @kotlinx.coroutines.ExperimentalCoroutinesApi
     fun whenUpdateProjectPresentation_thenServiceRetrieveUpdatedProjectPresentation() =
-        runBlockingTest {
+        runTest {
             val mockedProjectPresentation = ProjectPresentation(
                 "mockedId",
                 "mockedProjectId",

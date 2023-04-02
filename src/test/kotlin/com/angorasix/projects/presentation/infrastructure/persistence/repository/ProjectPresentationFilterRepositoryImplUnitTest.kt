@@ -9,7 +9,7 @@ import io.mockk.mockk
 import io.mockk.slot
 import io.mockk.verify
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.test.runBlockingTest
+import kotlinx.coroutines.test.runTest
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -43,7 +43,7 @@ class ProjectPresentationFilterRepositoryImplUnitTest {
     @Test
     @Throws(Exception::class)
     fun `Given empty ProjectFilter - When findUsingFilter - Then find repo operation with empty query`() =
-        runBlockingTest {
+        runTest {
             val filter = ListProjectPresentationsFilter()
             val mockedFlux = mockk<Flux<ProjectPresentation>>()
             every {
@@ -64,7 +64,7 @@ class ProjectPresentationFilterRepositoryImplUnitTest {
     @Test
     @Throws(Exception::class)
     fun `Given populated ProjectFilter - When findUsingFilter - Then find repo operation with populated query`() =
-        runBlockingTest {
+        runTest {
             val filter = ListProjectPresentationsFilter(listOf("1", "2"))
             val mockedFlux = mockk<Flux<ProjectPresentation>>()
             every {

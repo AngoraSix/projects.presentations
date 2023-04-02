@@ -1,7 +1,6 @@
 package com.angorasix.projects.presentation.presentation.handler
 
 import com.angorasix.commons.domain.RequestingContributor
-import com.angorasix.commons.infrastructure.presentation.error.ErrorResponseBody
 import com.angorasix.projects.presentation.application.ProjectsPresentationService
 import com.angorasix.projects.presentation.domain.projectpresentation.ProjectPresentation
 import com.angorasix.projects.presentation.infrastructure.config.configurationproperty.api.ApiConfigs
@@ -19,15 +18,16 @@ import io.mockk.impl.annotations.MockK
 import io.mockk.junit5.MockKExtension
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.reactor.mono
 import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.test.runBlockingTest
+import kotlinx.coroutines.test.runTest
 import org.assertj.core.api.AssertionsForClassTypes.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
+import org.springframework.hateoas.EntityModel
+import org.springframework.hateoas.mediatype.problem.Problem
 import org.springframework.http.HttpMethod
 import org.springframework.http.HttpStatus
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest
@@ -69,7 +69,7 @@ class ProjectsPresentationHandlerUnitTest {
     @Test
     @Throws(Exception::class)
     fun `Given existing project presentations - When list presentations - Then handler retrieves Ok Response`() =
-        runBlockingTest {
+        runTest {
             val mockedExchange = MockServerWebExchange.from(
                 MockServerHttpRequest.get(routeConfigs.listProjectPresentations.path).build(),
             )
@@ -140,10 +140,11 @@ class ProjectsPresentationHandlerUnitTest {
 
             assertThat(outputResponse.statusCode()).isEqualTo(HttpStatus.BAD_REQUEST)
             val response = @Suppress("UNCHECKED_CAST")
-            outputResponse as EntityResponse<ErrorResponseBody>
+            outputResponse as EntityResponse<EntityModel<Problem.ExtendedProblem<Any>>>
             val responseBody = response.entity()
-            assertThat(responseBody.status).isEqualTo(400)
-            assertThat(responseBody.errorCode).isEqualTo("CONTRIBUTOR_HEADER_INVALID")
+            assertThat(responseBody.content?.status).isEqualTo(HttpStatus.BAD_REQUEST)
+            var properties = responseBody.content?.properties as Map<String, Any>?
+            assertThat(properties?.get("errorCode") as String).isEqualTo("CONTRIBUTOR_HEADER_INVALID")
             Unit
         }
 
@@ -166,10 +167,11 @@ class ProjectsPresentationHandlerUnitTest {
 
             assertThat(outputResponse.statusCode()).isEqualTo(HttpStatus.BAD_REQUEST)
             val response = @Suppress("UNCHECKED_CAST")
-            outputResponse as EntityResponse<ErrorResponseBody>
+            outputResponse as EntityResponse<EntityModel<Problem.ExtendedProblem<Any>>>
             val responseBody = response.entity()
-            assertThat(responseBody.status).isEqualTo(400)
-            assertThat(responseBody.errorCode).isEqualTo("PROJECT_PRESENTATION_INVALID")
+            assertThat(responseBody.content?.status).isEqualTo(HttpStatus.BAD_REQUEST)
+            var properties = responseBody.content?.properties as Map<String, Any>?
+            assertThat(properties?.get("errorCode") as String).isEqualTo("PROJECT_PRESENTATION_INVALID")
             Unit
         }
 
@@ -214,7 +216,7 @@ class ProjectsPresentationHandlerUnitTest {
     @Throws(Exception::class)
     @kotlinx.coroutines.ExperimentalCoroutinesApi
     fun `Given existing projects - When get project for non Admin contributor - Then handler retrieves Ok Response without Edit link`() =
-        runBlockingTest {
+        runTest {
             val projectId = "projectId"
             val mockedRequestingContributor = RequestingContributor("mockedId")
             val mockedExchange =
@@ -243,7 +245,7 @@ class ProjectsPresentationHandlerUnitTest {
     @Throws(Exception::class)
     @kotlinx.coroutines.ExperimentalCoroutinesApi
     fun `Given existing projects - When get project for Admin Contributor - Then handler retrieves Ok Response with Edit link`() =
-        runBlockingTest {
+        runTest {
             val projectId = "projectId"
             val mockedRequestingContributor = RequestingContributor("mockedId", true)
 
