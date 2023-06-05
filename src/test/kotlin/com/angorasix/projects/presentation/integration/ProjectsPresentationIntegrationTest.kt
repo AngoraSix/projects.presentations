@@ -1,5 +1,6 @@
 package com.angorasix.projects.presentation.integration
 
+import com.angorasix.commons.domain.SimpleContributor
 import com.angorasix.projects.presentation.ProjectsPresentationApplication
 import com.angorasix.projects.presentation.domain.projectpresentation.ProjectPresentation
 import com.angorasix.projects.presentation.infrastructure.config.configurationproperty.api.ApiConfigs
@@ -136,6 +137,7 @@ class ProjectsPresentationIntegrationTest(
     fun `when post new Project Presentation - then new project presentation is persisted`() {
         val projectPresentationBody = ProjectPresentationDto(
             "567",
+            setOf(SimpleContributor("1", emptySet())),
             "newReferenceName",
             listOf(
                 PresentationSectionDto(
@@ -162,7 +164,6 @@ class ProjectsPresentationIntegrationTest(
             .uri("/projects-presentation")
             .accept(MediaType.APPLICATION_JSON)
             .contentType(MediaTypes.HAL_FORMS_JSON)
-            .header(apiConfigs.headers.contributor, mockRequestingContributorHeader(true))
             .body(
                 Mono.just(projectPresentationBody),
                 ProjectPresentationDto::class.java,
@@ -187,6 +188,7 @@ class ProjectsPresentationIntegrationTest(
     fun `given new persisted presentation - when retrieved - then data matches`() {
         val projectPresentationBody = ProjectPresentationDto(
             "789",
+            setOf(SimpleContributor("1", emptySet())),
             "referenceName2",
             listOf(
                 PresentationSectionDto(
@@ -213,7 +215,6 @@ class ProjectsPresentationIntegrationTest(
             .uri("/projects-presentation")
             .accept(MediaType.APPLICATION_JSON)
             .contentType(MediaTypes.HAL_FORMS_JSON)
-            .header(apiConfigs.headers.contributor, mockRequestingContributorHeader(true))
             .body(
                 Mono.just(projectPresentationBody),
                 ProjectPresentationDto::class.java,
@@ -254,7 +255,6 @@ class ProjectsPresentationIntegrationTest(
             .uri("/projects-presentation")
             .contentType(MediaTypes.HAL_FORMS_JSON)
             .accept(MediaType.APPLICATION_JSON)
-            .header(apiConfigs.headers.contributor, mockRequestingContributorHeader(true))
             .body(
                 Mono.just(projectPresentationBody),
                 String::class.java,
@@ -275,7 +275,6 @@ class ProjectsPresentationIntegrationTest(
             .uri("/projects-presentation")
             .contentType(MediaTypes.HAL_FORMS_JSON)
             .accept(MediaType.APPLICATION_JSON)
-            .header(apiConfigs.headers.contributor, mockRequestingContributorHeader(true))
             .body(
                 Mono.just(projectPresentationBody),
                 String::class.java,
@@ -293,6 +292,7 @@ class ProjectsPresentationIntegrationTest(
     fun `when post new Project Presentation with empty sections - then Bad Request response`() {
         val projectPresentationBody = ProjectPresentationDto(
             "567",
+            setOf(SimpleContributor("1", emptySet())),
             "referenceName",
             emptyList(),
         )
@@ -300,22 +300,11 @@ class ProjectsPresentationIntegrationTest(
             .uri("/projects-presentation")
             .accept(MediaType.APPLICATION_JSON)
             .contentType(MediaTypes.HAL_FORMS_JSON)
-            .header(apiConfigs.headers.contributor, mockRequestingContributorHeader(true))
             .body(
                 Mono.just(projectPresentationBody),
                 ProjectPresentationDto::class.java,
             )
             .exchange()
             .expectStatus().isCreated
-    }
-
-    private fun mockRequestingContributorHeader(asAdmin: Boolean = false): String {
-        val requestingContributorJson = """
-            {
-              "contributorId": "mockedContributorId1",
-              "projectAdmin": $asAdmin
-            }
-        """.trimIndent()
-        return Base64.getUrlEncoder().encodeToString(requestingContributorJson.toByteArray())
     }
 }

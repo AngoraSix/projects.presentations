@@ -1,5 +1,6 @@
 package com.angorasix.projects.presentation.application
 
+import com.angorasix.commons.domain.SimpleContributor
 import com.angorasix.projects.presentation.domain.projectpresentation.PresentationSection
 import com.angorasix.projects.presentation.domain.projectpresentation.ProjectPresentation
 import com.angorasix.projects.presentation.domain.projectpresentation.ProjectPresentationRepository
@@ -41,6 +42,7 @@ class ProjectPresentationServiceUnitTest {
         runTest {
             val mockedProjectPresentation = ProjectPresentation(
                 "mockedProjectId",
+                setOf(SimpleContributor("1", emptySet())),
                 "mockedReferenceName",
                 emptyList(),
             )
@@ -63,6 +65,7 @@ class ProjectPresentationServiceUnitTest {
             val mockedProjectPresentationId = "id1"
             val mockedProjectPresentation = ProjectPresentation(
                 "mockedProjectId",
+                setOf(SimpleContributor("1", emptySet())),
                 "mockedReferenceName",
                 emptyList(),
             )
@@ -80,11 +83,13 @@ class ProjectPresentationServiceUnitTest {
         runTest {
             val mockedProjectPresentation = ProjectPresentation(
                 "mockedProjectId",
+                setOf(SimpleContributor("1", emptySet())),
                 "mockedReferenceName",
                 emptyList(),
             )
             val savedProjectPresentation = ProjectPresentation(
                 "savedMockedProjectId",
+                setOf(SimpleContributor("1", emptySet())),
                 "mockedReferenceName",
                 emptyList(),
             )
@@ -112,11 +117,13 @@ class ProjectPresentationServiceUnitTest {
             } returns "mockedProjectId"
             val mockedUpdateProjectPresentation = ProjectPresentation(
                 "mockedProjectId",
+                setOf(SimpleContributor("1", emptySet())),
                 "mockedUpdatedReferenceName",
                 emptyList(),
             )
             val savedProjectPresentation = ProjectPresentation(
                 "savedMockedProjectId",
+                setOf(SimpleContributor("1", emptySet())),
                 "mockedReferenceName",
                 emptyList(),
             )
@@ -144,11 +151,13 @@ class ProjectPresentationServiceUnitTest {
         runTest {
             val mockedProjectPresentation = ProjectPresentation(
                 "mockedId",
+                setOf(SimpleContributor("1", emptySet())),
                 "mockedProjectId",
                 emptyList(),
             )
             val updatedProjectPresentation = ProjectPresentation(
                 "mockedId",
+                setOf(SimpleContributor("1", emptySet())),
                 "updatedMockedProjectId",
                 emptyList(),
             )

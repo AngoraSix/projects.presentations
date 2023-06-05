@@ -11,7 +11,7 @@ val beans = beans {
     bean<ProjectsPresentationService>()
     bean<ProjectsPresentationHandler>()
     bean {
-        ProjectsPresentationRouter(ref(), ref(), ref()).projectRouterFunction()
+        ProjectsPresentationRouter(ref(), ref()).projectRouterFunction()
     }
 }
 

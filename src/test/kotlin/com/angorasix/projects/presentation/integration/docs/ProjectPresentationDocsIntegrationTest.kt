@@ -8,7 +8,6 @@ import com.angorasix.projects.presentation.infrastructure.config.configurationpr
 import com.angorasix.projects.presentation.integration.utils.IntegrationProperties
 import com.angorasix.projects.presentation.integration.utils.initializeMongodb
 import com.angorasix.projects.presentation.utils.mockPresentationDto
-import com.angorasix.projects.presentation.utils.mockRequestingContributorHeader
 import com.fasterxml.jackson.databind.ObjectMapper
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.BeforeAll
@@ -164,7 +163,6 @@ class ProjectPresentationDocsIntegrationTest(
             )
             .accept(MediaType.APPLICATION_JSON)
             .contentType(MediaTypes.HAL_FORMS_JSON)
-            .header(apiConfigs.headers.contributor, mockRequestingContributorHeader(true))
             .body(Mono.just(newProjectPresentation))
             .exchange()
             .expectStatus().isCreated.expectBody()

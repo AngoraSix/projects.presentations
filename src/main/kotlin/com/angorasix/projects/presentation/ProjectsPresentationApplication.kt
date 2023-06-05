@@ -1,6 +1,7 @@
 package com.angorasix.projects.presentation
 
 import org.springframework.boot.autoconfigure.SpringBootApplication
+import org.springframework.boot.context.properties.ConfigurationPropertiesScan
 import org.springframework.boot.runApplication
 import org.springframework.hateoas.config.EnableHypermediaSupport
 import org.springframework.hateoas.support.WebStack
@@ -15,6 +16,7 @@ import org.springframework.hateoas.support.WebStack
     type = [EnableHypermediaSupport.HypermediaType.HAL_FORMS],
     stacks = [WebStack.WEBFLUX],
 )
+@ConfigurationPropertiesScan("com.angorasix.projects.presentation.infrastructure.config.configurationproperty.api")
 class ProjectsPresentationApplication
 
 /**

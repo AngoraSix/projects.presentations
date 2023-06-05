@@ -1,5 +1,6 @@
 package com.angorasix.projects.presentation.utils
 
+import com.angorasix.commons.domain.SimpleContributor
 import com.angorasix.projects.presentation.domain.projectpresentation.PresentationMedia
 import com.angorasix.projects.presentation.domain.projectpresentation.PresentationSection
 import com.angorasix.projects.presentation.domain.projectpresentation.ProjectPresentation
@@ -17,6 +18,7 @@ import java.util.*
 fun mockPresentation(modifier: String = ""): ProjectPresentation =
     ProjectPresentation(
         "mockedProjectId$modifier",
+        setOf(SimpleContributor("mockedContributorId", emptySet())),
         "mockedReferenceName$modifier",
         listOf<PresentationSection>(mockSection("1"), mockSection("2")),
     )
@@ -38,6 +40,7 @@ fun mockMedia(modifier: String = ""): PresentationMedia = PresentationMedia(
 fun mockPresentationDto(modifier: String = ""): ProjectPresentationDto =
     ProjectPresentationDto(
         "mockedProjectId$modifier",
+        setOf(SimpleContributor("1", emptySet())),
         "mockedReferenceName$modifier",
         listOf<PresentationSectionDto>(mockSectionDto("1"), mockSectionDto("2")),
         "mockedPresentationId$modifier",

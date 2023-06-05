@@ -1,10 +1,10 @@
 package com.angorasix.projects.presentation.presentation.handler
 
-import com.angorasix.commons.domain.RequestingContributor
+import com.angorasix.commons.domain.SimpleContributor
+import com.angorasix.commons.infrastructure.constants.AngoraSixInfrastructure
 import com.angorasix.projects.presentation.application.ProjectsPresentationService
 import com.angorasix.projects.presentation.domain.projectpresentation.ProjectPresentation
 import com.angorasix.projects.presentation.infrastructure.config.configurationproperty.api.ApiConfigs
-import com.angorasix.projects.presentation.infrastructure.config.configurationproperty.api.HeadersConfigs
 import com.angorasix.projects.presentation.infrastructure.config.configurationproperty.api.Route
 import com.angorasix.projects.presentation.infrastructure.config.configurationproperty.api.RoutesConfigs
 import com.angorasix.projects.presentation.infrastructure.queryfilters.ListProjectPresentationsFilter
@@ -48,8 +48,6 @@ class ProjectsPresentationHandlerUnitTest {
     @MockK
     private lateinit var apiConfigs: ApiConfigs
 
-    private var headerConfigs: HeadersConfigs = HeadersConfigs("MockedContributorHeader")
-
     private var routeConfigs: RoutesConfigs = RoutesConfigs(
         "",
         "/{id}",
@@ -61,7 +59,6 @@ class ProjectsPresentationHandlerUnitTest {
 
     @BeforeEach
     fun init() {
-        every { apiConfigs.headers } returns headerConfigs
         every { apiConfigs.routes } returns routeConfigs
         handler = ProjectsPresentationHandler(service, apiConfigs)
     }
@@ -99,12 +96,15 @@ class ProjectsPresentationHandlerUnitTest {
     fun `Given request with project and RequestingContributor - When create project - Then handler retrieves Created`() =
         runBlocking { // = runBlockingTest { // until we resolve why service.createProject is hanging https://github.com/Kotlin/kotlinx.coroutines/issues/1204
             val mockedProjectPresentationDto = mockPresentationDto()
-            val mockedRequestingContributor = RequestingContributor("mockedId")
+            val mockedSimpleContributor = SimpleContributor("mockedId")
             val mockedExchange = MockServerWebExchange.from(
                 MockServerHttpRequest.get(routeConfigs.createProjectPresentation.path).build(),
             )
             val mockedRequest: ServerRequest = MockServerRequest.builder()
-                .attribute(headerConfigs.contributor, mockedRequestingContributor)
+                .attribute(
+                    AngoraSixInfrastructure.REQUEST_ATTRIBUTE_CONTRIBUTOR_KEY,
+                    mockedSimpleContributor,
+                )
                 .exchange(mockedExchange).body(mono { mockedProjectPresentationDto })
             val mockedProjectPresentation = mockPresentation()
             coEvery { service.createProjectPresentation(ofType(ProjectPresentation::class)) } returns mockedProjectPresentation
@@ -153,14 +153,22 @@ class ProjectsPresentationHandlerUnitTest {
     fun `Given request with invalid project presentation - When update project presentation - Then handler retrieves Bad Request`() =
         runBlocking { // = runBlockingTest { // until we resolve why service.createProject is hanging https://github.com/Kotlin/kotlinx.coroutines/issues/1204
             val mockedProjectPresentationDto =
-                ProjectPresentationDto("mockedProjectId", null, emptyList())
-            val mockedRequestingContributor = RequestingContributor("mockedId")
+                ProjectPresentationDto(
+                    "mockedProjectId",
+                    setOf(SimpleContributor("1", emptySet())),
+                    null,
+                    emptyList(),
+                )
+            val mockedSimpleContributor = SimpleContributor("mockedId")
             val mockedExchange = MockServerWebExchange.from(
                 MockServerHttpRequest.get("/id1-mocked").build(),
             )
             val mockedRequest: ServerRequest =
                 MockServerRequest.builder().exchange(mockedExchange)
-                    .attribute(headerConfigs.contributor, mockedRequestingContributor)
+                    .attribute(
+                        AngoraSixInfrastructure.REQUEST_ATTRIBUTE_CONTRIBUTOR_KEY,
+                        mockedSimpleContributor,
+                    )
                     .pathVariable("id", "id1")
                     .body(mono { mockedProjectPresentationDto })
             val outputResponse = handler.createProjectPresentation(mockedRequest)
@@ -180,11 +188,14 @@ class ProjectsPresentationHandlerUnitTest {
     fun `Given request with project and RequestingContributor - When update project - Then handler retrieves Updated`() =
         runBlocking { // = runBlockingTest { // until we resolve why service.createProject is hanging https://github.com/Kotlin/kotlinx.coroutines/issues/1204
             val mockedProjectPresentationDto = mockPresentationDto()
-            val mockedRequestingContributor = RequestingContributor("mockedId")
+            val mockedSimpleContributor = SimpleContributor("mockedId")
             val mockedExchange =
                 MockServerWebExchange.from(MockServerHttpRequest.get("/id1-mocked").build())
             val mockedRequest: ServerRequest = MockServerRequest.builder()
-                .attribute(headerConfigs.contributor, mockedRequestingContributor)
+                .attribute(
+                    AngoraSixInfrastructure.REQUEST_ATTRIBUTE_CONTRIBUTOR_KEY,
+                    mockedSimpleContributor,
+                )
                 .pathVariable("id", "id1").exchange(mockedExchange)
                 .body(mono { mockedProjectPresentationDto })
             val mockedProjectPresentation = mockPresentation("Updated")
@@ -218,12 +229,15 @@ class ProjectsPresentationHandlerUnitTest {
     fun `Given existing projects - When get project for non Admin contributor - Then handler retrieves Ok Response without Edit link`() =
         runTest {
             val projectId = "projectId"
-            val mockedRequestingContributor = RequestingContributor("mockedId")
+            val mockedSimpleContributor = SimpleContributor("mockedId")
             val mockedExchange =
                 MockServerWebExchange.from(MockServerHttpRequest.get("/id1-mocked").build())
             val mockedRequest: ServerRequest =
                 MockServerRequest.builder()
-                    .attribute(headerConfigs.contributor, mockedRequestingContributor)
+                    .attribute(
+                        AngoraSixInfrastructure.REQUEST_ATTRIBUTE_CONTRIBUTOR_KEY,
+                        mockedSimpleContributor,
+                    )
                     .pathVariable("id", projectId).exchange(mockedExchange).build()
             val mockedProjectPresentation =
                 mockPresentation()
@@ -247,13 +261,16 @@ class ProjectsPresentationHandlerUnitTest {
     fun `Given existing projects - When get project for Admin Contributor - Then handler retrieves Ok Response with Edit link`() =
         runTest {
             val projectId = "projectId"
-            val mockedRequestingContributor = RequestingContributor("mockedId", true)
+            val mockedSimpleContributor = SimpleContributor("mockedContributorId", emptySet())
 
             val mockedExchange =
                 MockServerWebExchange.from(MockServerHttpRequest.get("/id1-mocked").build())
             val mockedRequest: ServerRequest =
                 MockServerRequest.builder()
-                    .attribute(headerConfigs.contributor, mockedRequestingContributor)
+                    .attribute(
+                        AngoraSixInfrastructure.REQUEST_ATTRIBUTE_CONTRIBUTOR_KEY,
+                        mockedSimpleContributor,
+                    )
                     .pathVariable("id", projectId).exchange(mockedExchange).build()
             val mockedProjectPresentation =
                 mockPresentation()

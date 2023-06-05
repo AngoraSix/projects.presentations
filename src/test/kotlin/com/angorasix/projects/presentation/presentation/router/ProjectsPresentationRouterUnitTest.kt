@@ -1,13 +1,12 @@
 package com.angorasix.projects.presentation.presentation.router
 
+import com.angorasix.commons.domain.SimpleContributor
 import com.angorasix.projects.presentation.infrastructure.config.configurationproperty.api.ApiConfigs
 import com.angorasix.projects.presentation.infrastructure.config.configurationproperty.api.BasePathConfigs
-import com.angorasix.projects.presentation.infrastructure.config.configurationproperty.api.HeadersConfigs
 import com.angorasix.projects.presentation.infrastructure.config.configurationproperty.api.Route
 import com.angorasix.projects.presentation.infrastructure.config.configurationproperty.api.RoutesConfigs
 import com.angorasix.projects.presentation.presentation.dto.ProjectPresentationDto
 import com.angorasix.projects.presentation.presentation.handler.ProjectsPresentationHandler
-import com.fasterxml.jackson.databind.ObjectMapper
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.impl.annotations.MockK
@@ -31,15 +30,11 @@ class ProjectsPresentationRouterUnitTest {
     private lateinit var router: ProjectsPresentationRouter
 
     @MockK
-    private lateinit var objectMapper: ObjectMapper
-
-    @MockK
     private lateinit var apiConfigs: ApiConfigs
 
     @MockK
     private lateinit var handler: ProjectsPresentationHandler
 
-    private var headerConfigs: HeadersConfigs = HeadersConfigs("MockedContributorHeader")
     private var routeConfigs: RoutesConfigs = RoutesConfigs(
         "",
         "/{id}",
@@ -52,10 +47,9 @@ class ProjectsPresentationRouterUnitTest {
 
     @BeforeEach
     fun init() {
-        every { apiConfigs.headers } returns headerConfigs
         every { apiConfigs.routes } returns routeConfigs
         every { apiConfigs.basePaths } returns basePathsConfigs
-        router = ProjectsPresentationRouter(handler, objectMapper, apiConfigs)
+        router = ProjectsPresentationRouter(handler, apiConfigs)
     }
 
     @Test
@@ -79,6 +73,7 @@ class ProjectsPresentationRouterUnitTest {
                 .body(
                     ProjectPresentationDto(
                         "testProjectId",
+                        setOf(SimpleContributor("1", emptySet())),
                         "testProjectPresentationName",
                         emptyList(),
                     ),
@@ -90,6 +85,7 @@ class ProjectsPresentationRouterUnitTest {
                 .body(
                     ProjectPresentationDto(
                         "testProjectId",
+                        setOf(SimpleContributor("1", emptySet())),
                         "testProjectPresentationName",
                         emptyList(),
                     ),
