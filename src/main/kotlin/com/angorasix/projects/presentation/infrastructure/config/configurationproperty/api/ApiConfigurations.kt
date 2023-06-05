@@ -1,8 +1,7 @@
 package com.angorasix.projects.presentation.infrastructure.config.configurationproperty.api
 
 import org.springframework.boot.context.properties.ConfigurationProperties
-import org.springframework.boot.context.properties.ConstructorBinding
-import org.springframework.context.annotation.Configuration
+import org.springframework.boot.context.properties.NestedConfigurationProperty
 import org.springframework.http.HttpMethod
 
 /**
@@ -12,19 +11,18 @@ import org.springframework.http.HttpMethod
  *
  * @author rozagerardo
  */
-@Configuration
 @ConfigurationProperties(prefix = "configs.api")
-class ApiConfigs {
-    lateinit var headers: HeadersConfigs
-    lateinit var routes: RoutesConfigs
-    lateinit var basePaths: BasePathConfigs
-}
+data class ApiConfigs(
+    @NestedConfigurationProperty
+    var routes: RoutesConfigs,
 
-class HeadersConfigs @ConstructorBinding constructor(val contributor: String)
+    @NestedConfigurationProperty
+    var basePaths: BasePathConfigs,
+)
 
-class BasePathConfigs @ConstructorBinding constructor(val projectsPresentation: String)
+data class BasePathConfigs constructor(val projectsPresentation: String)
 
-class RoutesConfigs @ConstructorBinding constructor(
+data class RoutesConfigs constructor(
     val baseListCrudRoute: String,
     val baseByIdCrudRoute: String,
     val createProjectPresentation: Route,

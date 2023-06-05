@@ -1,6 +1,7 @@
 package com.angorasix.projects.presentation.presentation.handler
 
-import com.angorasix.commons.domain.RequestingContributor
+import com.angorasix.commons.domain.SimpleContributor
+import com.angorasix.commons.infrastructure.constants.AngoraSixInfrastructure
 import com.angorasix.commons.infrastructure.presentation.error.resolveBadRequest
 import com.angorasix.commons.infrastructure.presentation.error.resolveNotFound
 import com.angorasix.projects.presentation.application.ProjectsPresentationService
@@ -47,9 +48,10 @@ class ProjectsPresentationHandler(
      * @return the `ServerResponse`
      */
     suspend fun listProjectPresentations(request: ServerRequest): ServerResponse {
-        val requestingContributor = request.attributes()[apiConfigs.headers.contributor]
+        val requestingContributor =
+            request.attributes()[AngoraSixInfrastructure.REQUEST_ATTRIBUTE_CONTRIBUTOR_KEY]
         return service.findProjectPresentations(request.queryParams().toQueryFilter()).map {
-            it.convertToDto(requestingContributor as? RequestingContributor, apiConfigs, request)
+            it.convertToDto(requestingContributor as? SimpleContributor, apiConfigs, request)
         }.let {
             ok().contentType(MediaTypes.HAL_FORMS_JSON).bodyAndAwait(it)
         }
@@ -63,12 +65,13 @@ class ProjectsPresentationHandler(
      * @return the `ServerResponse`
      */
     suspend fun getProjectPresentation(request: ServerRequest): ServerResponse {
-        val requestingContributor = request.attributes()[apiConfigs.headers.contributor]
+        val requestingContributor =
+            request.attributes()[AngoraSixInfrastructure.REQUEST_ATTRIBUTE_CONTRIBUTOR_KEY]
         val projectPresentationId = request.pathVariable("id")
         return service.findSingleProjectPresentation(projectPresentationId)?.let {
             val outputProjectPresentation =
                 it.convertToDto(
-                    requestingContributor as? RequestingContributor,
+                    requestingContributor as? SimpleContributor,
                     apiConfigs,
                     request,
                 )
@@ -84,8 +87,9 @@ class ProjectsPresentationHandler(
      * @return the `ServerResponse`
      */
     suspend fun createProjectPresentation(request: ServerRequest): ServerResponse {
-        val requestingContributor = request.attributes()[apiConfigs.headers.contributor]
-        return if (requestingContributor is RequestingContributor) {
+        val requestingContributor =
+            request.attributes()[AngoraSixInfrastructure.REQUEST_ATTRIBUTE_CONTRIBUTOR_KEY]
+        return if (requestingContributor is SimpleContributor) {
             val project = try {
                 request.awaitBody<ProjectPresentationDto>()
                     .convertToDomain()
@@ -113,7 +117,8 @@ class ProjectsPresentationHandler(
      * @return the `ServerResponse`
      */
     suspend fun updateProjectPresentation(request: ServerRequest): ServerResponse {
-        val requestingContributor = request.attributes()[apiConfigs.headers.contributor]
+        val requestingContributor =
+            request.attributes()[AngoraSixInfrastructure.REQUEST_ATTRIBUTE_CONTRIBUTOR_KEY]
         val projectId = request.pathVariable("id")
         val updateProjectPresentationData = try {
             request.awaitBody<ProjectPresentationDto>()
@@ -127,7 +132,7 @@ class ProjectsPresentationHandler(
         return service.updateProjectPresentation(projectId, updateProjectPresentationData)?.let {
             val outputProjectPresentation =
                 it.convertToDto(
-                    requestingContributor as? RequestingContributor,
+                    requestingContributor as? SimpleContributor,
                     apiConfigs,
                     request,
                 )
@@ -137,21 +142,29 @@ class ProjectsPresentationHandler(
 }
 
 private fun ProjectPresentation.convertToDto(): ProjectPresentationDto =
-    ProjectPresentationDto(projectId, referenceName, sections?.map { it.convertToDto() }, id)
+    ProjectPresentationDto(
+        projectId,
+        admins,
+        referenceName,
+        sections?.map { it.convertToDto() },
+        id,
+    )
 
 private fun ProjectPresentation.convertToDto(
-    requestingContributor: RequestingContributor?,
+    simpleContributor: SimpleContributor?,
     apiConfigs: ApiConfigs,
     request: ServerRequest,
 ): ProjectPresentationDto =
-    convertToDto().resolveHypermedia(requestingContributor, apiConfigs, request)
+    convertToDto().resolveHypermedia(simpleContributor, apiConfigs, request)
 
 private fun ProjectPresentationDto.convertToDomain(): ProjectPresentation {
+    if (projectId == null || admins == null || referenceName == null) {
+        throw IllegalArgumentException("Invalid ProjectPresentationDto: $this")
+    }
     return ProjectPresentation(
-        projectId ?: throw IllegalArgumentException("ProjectPresentation projectId expected"),
-        referenceName ?: throw IllegalArgumentException(
-            "ProjectPresentation referenceName expected",
-        ),
+        projectId,
+        admins ?: throw IllegalArgumentException("Invalid ProjectPresentationDto: $this"),
+        referenceName,
         sections?.map { it.convertToDomain() }?.toMutableSet(),
     )
 }
@@ -193,7 +206,7 @@ private fun PresentationMediaDto.convertToDomain(): PresentationMedia {
 }
 
 private fun ProjectPresentationDto.resolveHypermedia(
-    requestingContributor: RequestingContributor?,
+    simpleContributor: SimpleContributor?,
     apiConfigs: ApiConfigs,
     request: ServerRequest,
 ): ProjectPresentationDto {
@@ -207,8 +220,8 @@ private fun ProjectPresentationDto.resolveHypermedia(
     add(selfLinkWithDefaultAffordance)
 
     // edit ProjectPresentation
-    if (requestingContributor != null) {
-        if (requestingContributor.isProjectAdmin) {
+    if (simpleContributor != null && admins != null) {
+        if (admins?.map { it.id }?.contains(simpleContributor.id) == true) {
             val editProjectPresentationRoute = apiConfigs.routes.updateProjectPresentation
             val editProjectPresentationLink =
                 Link.of(

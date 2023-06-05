@@ -6,7 +6,7 @@
   <parent>
     <artifactId>parent-pom-spring-kotlin</artifactId>
     <groupId>com.angorasix</groupId>
-    <version>0.1.3-SNAPSHOT</version>
+    <version>0.2.0</version>
   </parent>
   <artifactId>projects.presentations</artifactId>
   <name>projects.presentations</name>
@@ -35,8 +35,14 @@
     <dependency>
       <groupId>com.angorasix</groupId>
       <artifactId>commons.core</artifactId>
-      <version>0.1.3-SNAPSHOT</version>
+      <version>0.2.1</version>
     </dependency>
+
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-oauth2-resource-server</artifactId>
+    </dependency>
+
 
     <!-- check if necessary with newer versions https://github.com/Playtika/testcontainers-spring-boot/issues/562 -->
     <dependency>
