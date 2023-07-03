@@ -1,6 +1,6 @@
 package com.angorasix.projects.presentation.presentation.router
 
-import com.angorasix.commons.presentation.filter.extractRequestingContributor
+import com.angorasix.commons.reactive.presentation.filter.extractRequestingContributor
 import com.angorasix.projects.presentation.infrastructure.config.configurationproperty.api.ApiConfigs
 import com.angorasix.projects.presentation.presentation.handler.ProjectsPresentationHandler
 import org.springframework.web.reactive.function.server.RouterFunction

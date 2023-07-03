@@ -2,8 +2,8 @@ package com.angorasix.projects.presentation.presentation.handler
 
 import com.angorasix.commons.domain.SimpleContributor
 import com.angorasix.commons.infrastructure.constants.AngoraSixInfrastructure
-import com.angorasix.commons.infrastructure.presentation.error.resolveBadRequest
-import com.angorasix.commons.infrastructure.presentation.error.resolveNotFound
+import com.angorasix.commons.reactive.presentation.error.resolveBadRequest
+import com.angorasix.commons.reactive.presentation.error.resolveNotFound
 import com.angorasix.projects.presentation.application.ProjectsPresentationService
 import com.angorasix.projects.presentation.domain.projectpresentation.PresentationMedia
 import com.angorasix.projects.presentation.domain.projectpresentation.PresentationSection
