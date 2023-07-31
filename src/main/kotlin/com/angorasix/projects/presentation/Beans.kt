@@ -1,6 +1,7 @@
 package com.angorasix.projects.presentation
 
 import com.angorasix.projects.presentation.application.ProjectsPresentationService
+import com.angorasix.projects.presentation.infrastructure.security.ProjectsPresentationSecurityConfiguration
 import com.angorasix.projects.presentation.presentation.handler.ProjectsPresentationHandler
 import com.angorasix.projects.presentation.presentation.router.ProjectsPresentationRouter
 import org.springframework.context.ApplicationContextInitializer
@@ -8,6 +9,9 @@ import org.springframework.context.support.GenericApplicationContext
 import org.springframework.context.support.beans
 
 val beans = beans {
+    bean {
+        ProjectsPresentationSecurityConfiguration().springSecurityFilterChain(ref())
+    }
     bean<ProjectsPresentationService>()
     bean<ProjectsPresentationHandler>()
     bean {
