@@ -92,7 +92,7 @@ class ProjectsPresentationHandler(
         return if (requestingContributor is SimpleContributor) {
             val project = try {
                 request.awaitBody<ProjectPresentationDto>()
-                    .convertToDomain()
+                    .convertToDomain(setOf(SimpleContributor(requestingContributor.contributorId, emptySet())))
             } catch (e: IllegalArgumentException) {
                 return resolveBadRequest(
                     e.message ?: "Incorrect Project Presentation body",
@@ -122,7 +122,7 @@ class ProjectsPresentationHandler(
         val projectId = request.pathVariable("id")
         val updateProjectPresentationData = try {
             request.awaitBody<ProjectPresentationDto>()
-                .let { it.convertToDomain() }
+                .let { it.convertToDomain(it.admins ?: emptySet()) }
         } catch (e: IllegalArgumentException) {
             return resolveBadRequest(
                 e.message ?: "Incorrect Project Presentation body",
@@ -157,13 +157,15 @@ private fun ProjectPresentation.convertToDto(
 ): ProjectPresentationDto =
     convertToDto().resolveHypermedia(simpleContributor, apiConfigs, request)
 
-private fun ProjectPresentationDto.convertToDomain(): ProjectPresentation {
-    if (projectId == null || admins == null || referenceName == null) {
+private fun ProjectPresentationDto.convertToDomain(
+    admins: Set<SimpleContributor>,
+): ProjectPresentation {
+    if (projectId == null || referenceName == null) {
         throw IllegalArgumentException("Invalid ProjectPresentationDto: $this")
     }
     return ProjectPresentation(
         projectId,
-        admins ?: throw IllegalArgumentException("Invalid ProjectPresentationDto: $this"),
+        admins,
         referenceName,
         sections?.map { it.convertToDomain() }?.toMutableSet(),
     )
@@ -221,7 +223,7 @@ private fun ProjectPresentationDto.resolveHypermedia(
 
     // edit ProjectPresentation
     if (simpleContributor != null && admins != null) {
-        if (admins?.map { it.id }?.contains(simpleContributor.id) == true) {
+        if (admins?.map { it.contributorId }?.contains(simpleContributor.contributorId) == true) {
             val editProjectPresentationRoute = apiConfigs.routes.updateProjectPresentation
             val editProjectPresentationLink =
                 Link.of(
