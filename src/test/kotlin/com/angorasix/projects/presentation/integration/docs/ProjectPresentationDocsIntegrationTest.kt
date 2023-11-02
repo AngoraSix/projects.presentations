@@ -47,7 +47,6 @@ import org.springframework.restdocs.webtestclient.WebTestClientRestDocumentation
 import org.springframework.test.context.TestPropertySource
 import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.test.web.reactive.server.body
-import org.springframework.web.reactive.function.client.ExchangeFilterFunction
 import reactor.core.publisher.Mono
 import java.time.Duration
 
@@ -128,22 +127,6 @@ class ProjectPresentationDocsIntegrationTest(
             .responseTimeout(Duration.ofMillis(30000))
             .filter(
                 documentationConfiguration(restDocumentation),
-            )
-            .filter(
-                ExchangeFilterFunction.ofRequestProcessor { clientRequest ->
-                    println(
-                        "Request: ${clientRequest.method()} ${clientRequest.url()}",
-                    )
-                    clientRequest.headers()
-                        .forEach { name, values ->
-                            values.forEach { value ->
-                                println(
-                                    "$name=$value",
-                                )
-                            }
-                        }
-                    Mono.just(clientRequest)
-                },
             )
             .build()
     }
