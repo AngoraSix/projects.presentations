@@ -19,17 +19,3 @@ jobs:
     secrets:
       wif-provider: ${{ secrets.WIF_PROVIDER }}
       wif-service-account: ${{ secrets.WIF_SERVICE_ACCOUNT }}
-#    runs-on: ubuntu-latest
-#    steps:
-#    - uses: actions/checkout@v4
-#    - uses: actions/download-artifact@master
-#      with:
-#        name: Package
-#        path: staging
-#    - run: mkdir target && cp staging target
-#    - uses: AngoraSix/infra/.github/workflows/action-push-gcp.yml@main
-#      with:
-#        app: projects-core
-#      secrets:
-#        wif-provider: ${{ secrets.WIF_PROVIDER }}
-#        wif-service-account: ${{ secrets.WIF_SERVICE_ACCOUNT }}
