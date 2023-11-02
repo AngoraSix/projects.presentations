@@ -3,14 +3,19 @@
   xmlns="http://maven.apache.org/POM/4.0.0"
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
+
+  <groupId>com.angorasix</groupId>
+  <artifactId>projects.presentations</artifactId>
+  <version>0.2.1</version>
+
+  <name>projects.presentations</name>
+  <description>Projects Presentations Service</description>
+
   <parent>
     <artifactId>parent-pom-spring-kotlin</artifactId>
     <groupId>com.angorasix</groupId>
-    <version>0.2.1</version>
+    <version>0.2.2</version>
   </parent>
-  <artifactId>projects.presentations</artifactId>
-  <name>projects.presentations</name>
-  <description>Projects Presentations Service</description>
 
   <properties>
     <jacoco-coverage.class.line.min>0.50</jacoco-coverage.class.line.min>
@@ -35,7 +40,7 @@
     <dependency>
       <groupId>com.angorasix</groupId>
       <artifactId>commons.core</artifactId>
-      <version>0.2.4</version>
+      <version>0.2.6</version>
     </dependency>
 
     <dependency>
@@ -46,14 +51,14 @@
 
     <!-- check if necessary with newer versions https://github.com/Playtika/testcontainers-spring-boot/issues/562 -->
     <dependency>
-      <groupId>org.springframework.cloud</groupId>
-      <artifactId>spring-cloud-starter-bootstrap</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
       <groupId>com.playtika.testcontainers</groupId>
       <artifactId>embedded-mongodb</artifactId>
       <version>${playtika.testcontainers.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.cloud</groupId>
+      <artifactId>spring-cloud-starter-bootstrap</artifactId>
       <scope>test</scope>
     </dependency>
     <dependency>
