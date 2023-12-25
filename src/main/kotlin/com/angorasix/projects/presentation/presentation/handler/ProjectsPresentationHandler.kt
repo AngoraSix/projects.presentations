@@ -248,6 +248,7 @@ private fun uriBuilder(request: ServerRequest) = request.requestPath().contextPa
 
 private fun MultiValueMap<String, String>.toQueryFilter(): ListProjectPresentationsFilter {
     return ListProjectPresentationsFilter(
-        get(ProjectPresentationQueryParams.PROJECT_IDS.param)?.flatMap { it.split(",") },
+            projectIds = get(ProjectPresentationQueryParams.PROJECT_IDS.param)?.flatMap { it.split(",") },
+            text = get(ProjectPresentationQueryParams.TEXT.param)?.firstOrNull()
     )
 }
