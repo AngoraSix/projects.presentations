@@ -9,4 +9,5 @@ package com.angorasix.projects.presentation.infrastructure.queryfilters
  */
 data class ListProjectPresentationsFilter(
     val projectIds: Collection<String>? = null,
+    val text: String? = null, // search by text
 )
