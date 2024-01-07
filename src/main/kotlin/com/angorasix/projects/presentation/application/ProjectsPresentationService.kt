@@ -1,5 +1,6 @@
 package com.angorasix.projects.presentation.application
 
+import com.angorasix.commons.domain.SimpleContributor
 import com.angorasix.projects.presentation.domain.projectpresentation.ProjectPresentation
 import com.angorasix.projects.presentation.domain.projectpresentation.ProjectPresentationRepository
 import com.angorasix.projects.presentation.infrastructure.queryfilters.ListProjectPresentationsFilter
@@ -24,11 +25,21 @@ class ProjectsPresentationService(private val repository: ProjectPresentationRep
     suspend fun updateProjectPresentation(
         id: String,
         updateData: ProjectPresentation,
+        simpleContributor: SimpleContributor
     ): ProjectPresentation? {
-        val projectPresentationToUpdate =
-            repository.findById(id).takeIf { it?.projectId == updateData.projectId }
-                ?: throw IllegalArgumentException("Provided 'projectId' doesn't match the Project Presentation one")
-        return projectPresentationToUpdate.updateWithData(updateData).let { repository.save(it) }
+
+        val projectPresentationToUpdate = repository.findByIdForContributor(
+                ListProjectPresentationsFilter(
+                        listOf(updateData.projectId),
+                        null,
+                        listOf(simpleContributor.contributorId),
+                        listOf(id)
+                ),
+                simpleContributor,
+        ) ?: throw IllegalArgumentException("Query didn't match any Project Presentation")
+
+        return projectPresentationToUpdate.updateWithData(updateData)?.let { repository.save(it) }
+
     }
 
     private fun ProjectPresentation.updateWithData(other: ProjectPresentation): ProjectPresentation {

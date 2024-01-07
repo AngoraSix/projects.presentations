@@ -129,7 +129,11 @@ class ProjectsPresentationHandler(
                 "Project Presentation",
             )
         }
-        return service.updateProjectPresentation(projectId, updateProjectPresentationData)?.let {
+        return service.updateProjectPresentation(
+                projectId,
+                updateProjectPresentationData,
+                requestingContributor as SimpleContributor
+        )?.let {
             val outputProjectPresentation =
                 it.convertToDto(
                     requestingContributor as? SimpleContributor,
