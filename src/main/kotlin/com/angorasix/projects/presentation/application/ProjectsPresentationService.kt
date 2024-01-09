@@ -32,7 +32,7 @@ class ProjectsPresentationService(private val repository: ProjectPresentationRep
                 ListProjectPresentationsFilter(
                         listOf(updateData.projectId),
                         null,
-                        listOf(requestingContributor.contributorId),
+                        setOf(requestingContributor.contributorId),
                         listOf(id)
                 ),
                 requestingContributor,

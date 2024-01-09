@@ -135,7 +135,7 @@ class ProjectPresentationServiceUnitTest {
                         ListProjectPresentationsFilter(
                                 listOf("mockedProjectId"),
                                 null,
-                                listOf("1"),
+                                setOf("1"),
                                 listOf("id1")
                         ),
                         mockedSimpleContributor,
@@ -154,7 +154,7 @@ class ProjectPresentationServiceUnitTest {
                         ListProjectPresentationsFilter(
                                 listOf("mockedProjectId"),
                                 null,
-                                listOf("1"),
+                                setOf("1"),
                                 listOf("id1")
                         ),
                         mockedSimpleContributor,
