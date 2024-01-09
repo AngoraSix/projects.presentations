@@ -23,19 +23,19 @@ class ProjectsPresentationService(private val repository: ProjectPresentationRep
         repository.save(projectPresentation)
 
     suspend fun updateProjectPresentation(
-        id: String,
-        updateData: ProjectPresentation,
-        simpleContributor: SimpleContributor
+            id: String,
+            updateData: ProjectPresentation,
+            requestingContributor: SimpleContributor
     ): ProjectPresentation? {
 
         val projectPresentationToUpdate = repository.findByIdForContributor(
                 ListProjectPresentationsFilter(
                         listOf(updateData.projectId),
                         null,
-                        listOf(simpleContributor.contributorId),
+                        listOf(requestingContributor.contributorId),
                         listOf(id)
                 ),
-                simpleContributor,
+                requestingContributor,
         ) //?: throw IllegalArgumentException("Query didn't match any Project Presentation")
 
         return projectPresentationToUpdate?.updateWithData(updateData)?.let { repository.save(it) }

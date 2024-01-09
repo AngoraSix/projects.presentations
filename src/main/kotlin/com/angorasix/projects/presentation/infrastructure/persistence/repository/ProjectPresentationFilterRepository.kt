@@ -15,6 +15,6 @@ interface ProjectPresentationFilterRepository {
     fun findUsingFilter(filter: ListProjectPresentationsFilter): Flow<ProjectPresentation>
     suspend fun findByIdForContributor(
             filter: ListProjectPresentationsFilter,
-            simpleContributor: SimpleContributor?,
+            requestingContributor: SimpleContributor?,
     ): ProjectPresentation?
 }

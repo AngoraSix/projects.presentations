@@ -155,11 +155,11 @@ private fun ProjectPresentation.convertToDto(): ProjectPresentationDto =
     )
 
 private fun ProjectPresentation.convertToDto(
-    simpleContributor: SimpleContributor?,
-    apiConfigs: ApiConfigs,
-    request: ServerRequest,
+        requestingContributor: SimpleContributor?,
+        apiConfigs: ApiConfigs,
+        request: ServerRequest,
 ): ProjectPresentationDto =
-    convertToDto().resolveHypermedia(simpleContributor, apiConfigs, request)
+    convertToDto().resolveHypermedia(requestingContributor, apiConfigs, request)
 
 private fun ProjectPresentationDto.convertToDomain(
     admins: Set<SimpleContributor>,
@@ -212,9 +212,9 @@ private fun PresentationMediaDto.convertToDomain(): PresentationMedia {
 }
 
 private fun ProjectPresentationDto.resolveHypermedia(
-    simpleContributor: SimpleContributor?,
-    apiConfigs: ApiConfigs,
-    request: ServerRequest,
+        requestingContributor: SimpleContributor?,
+        apiConfigs: ApiConfigs,
+        request: ServerRequest,
 ): ProjectPresentationDto {
     val getSingleRoute = apiConfigs.routes.getProjectPresentation
     // self
@@ -226,8 +226,8 @@ private fun ProjectPresentationDto.resolveHypermedia(
     add(selfLinkWithDefaultAffordance)
 
     // edit ProjectPresentation
-    if (simpleContributor != null && admins != null) {
-        if (admins?.map { it.contributorId }?.contains(simpleContributor.contributorId) == true) {
+    if (requestingContributor != null && admins != null) {
+        if (admins?.map { it.contributorId }?.contains(requestingContributor.contributorId) == true) {
             val editProjectPresentationRoute = apiConfigs.routes.updateProjectPresentation
             val editProjectPresentationLink =
                 Link.of(
