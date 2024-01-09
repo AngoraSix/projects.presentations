@@ -89,7 +89,9 @@ class ProjectsPresentationHandler(
     suspend fun createProjectPresentation(request: ServerRequest): ServerResponse {
         val requestingContributor =
             request.attributes()[AngoraSixInfrastructure.REQUEST_ATTRIBUTE_CONTRIBUTOR_KEY]
+
         return if (requestingContributor is SimpleContributor) {
+
             val project = try {
                 request.awaitBody<ProjectPresentationDto>()
                     .convertToDomain(setOf(SimpleContributor(requestingContributor.contributorId, emptySet())))
@@ -99,14 +101,17 @@ class ProjectsPresentationHandler(
                     "Project Presentation",
                 )
             }
+
             val outputProjectPresentation = service.createProjectPresentation(project)
                 .convertToDto(requestingContributor, apiConfigs, request)
+
             val selfLink =
                 outputProjectPresentation.links.getRequiredLink(IanaLinkRelations.SELF).href
             created(URI.create(selfLink)).contentType(MediaTypes.HAL_FORMS_JSON)
                 .bodyValueAndAwait(outputProjectPresentation)
+
         } else {
-            resolveBadRequest("Invalid Contributor Header", "Contributor Header")
+            resolveBadRequest("Invalid Contributor Token", "Contributor Token")
         }
     }
 
@@ -119,7 +124,13 @@ class ProjectsPresentationHandler(
     suspend fun updateProjectPresentation(request: ServerRequest): ServerResponse {
         val requestingContributor =
             request.attributes()[AngoraSixInfrastructure.REQUEST_ATTRIBUTE_CONTRIBUTOR_KEY]
+
+        if (requestingContributor !is SimpleContributor) {
+            return resolveBadRequest("Invalid Contributor Token", "Contributor Token")
+        }
+
         val projectId = request.pathVariable("id")
+
         val updateProjectPresentationData = try {
             request.awaitBody<ProjectPresentationDto>()
                 .let { it.convertToDomain(it.admins ?: emptySet()) }
@@ -129,14 +140,15 @@ class ProjectsPresentationHandler(
                 "Project Presentation",
             )
         }
+
         return service.updateProjectPresentation(
                 projectId,
                 updateProjectPresentationData,
-                requestingContributor as SimpleContributor
+                requestingContributor
         )?.let {
             val outputProjectPresentation =
                 it.convertToDto(
-                    requestingContributor as? SimpleContributor,
+                    requestingContributor,
                     apiConfigs,
                     request,
                 )

@@ -36,7 +36,7 @@ class ProjectsPresentationService(private val repository: ProjectPresentationRep
                         listOf(id)
                 ),
                 requestingContributor,
-        ) //?: throw IllegalArgumentException("Query didn't match any Project Presentation")
+        )
 
         return projectPresentationToUpdate?.updateWithData(updateData)?.let { repository.save(it) }
 
