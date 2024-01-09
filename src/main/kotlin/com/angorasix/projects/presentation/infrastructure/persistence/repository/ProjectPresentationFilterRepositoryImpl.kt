@@ -36,11 +36,6 @@ class ProjectPresentationFilterRepositoryImpl(val mongoOps: ReactiveMongoOperati
 private fun ListProjectPresentationsFilter.toQuery(requestingContributor: SimpleContributor? = null): Query {
     val query = Query()
 
-    val requestingOthers = adminId == null || !adminId.contains(requestingContributor?.contributorId)
-    val requestingOwn =
-            requestingContributor != null && (adminId.isNullOrEmpty() || adminId.contains(requestingContributor.contributorId))
-
-
     ids?.let { query.addCriteria(where("_id").`in`(it)) }
 
     projectIds?.let { query.addCriteria(where("projectId").`in`(it)) }
@@ -53,12 +48,8 @@ private fun ListProjectPresentationsFilter.toQuery(requestingContributor: Simple
         query.addCriteria(titleOrDescriptionOrNameCriteria)
     }
 
-    if (requestingOthers) {
-        return query
-    }
-
-    if (requestingOwn) {
-        query.addCriteria(where("admins").elemMatch(where("contributorId").`is`(requestingContributor?.contributorId)))
+    if (requestingContributor?.contributorId != null && adminId != null) {
+        query.addCriteria(where("admins.contributorId").`in`(adminId + requestingContributor.contributorId))
     }
 
     return query

@@ -90,29 +90,29 @@ class ProjectsPresentationHandler(
         val requestingContributor =
             request.attributes()[AngoraSixInfrastructure.REQUEST_ATTRIBUTE_CONTRIBUTOR_KEY]
 
-        return if (requestingContributor is SimpleContributor) {
+        if (requestingContributor !is SimpleContributor) {
+            return resolveBadRequest("Invalid Contributor Token", "Contributor Token")
+        }
 
-            val project = try {
-                request.awaitBody<ProjectPresentationDto>()
+        val project = try {
+            request.awaitBody<ProjectPresentationDto>()
                     .convertToDomain(setOf(SimpleContributor(requestingContributor.contributorId, emptySet())))
-            } catch (e: IllegalArgumentException) {
-                return resolveBadRequest(
+        } catch (e: IllegalArgumentException) {
+            return resolveBadRequest(
                     e.message ?: "Incorrect Project Presentation body",
                     "Project Presentation",
-                )
-            }
+            )
+        }
 
-            val outputProjectPresentation = service.createProjectPresentation(project)
+        val outputProjectPresentation = service.createProjectPresentation(project)
                 .convertToDto(requestingContributor, apiConfigs, request)
 
-            val selfLink =
+        val selfLink =
                 outputProjectPresentation.links.getRequiredLink(IanaLinkRelations.SELF).href
-            created(URI.create(selfLink)).contentType(MediaTypes.HAL_FORMS_JSON)
+
+        return created(URI.create(selfLink)).contentType(MediaTypes.HAL_FORMS_JSON)
                 .bodyValueAndAwait(outputProjectPresentation)
 
-        } else {
-            resolveBadRequest("Invalid Contributor Token", "Contributor Token")
-        }
     }
 
     /**
@@ -146,14 +146,18 @@ class ProjectsPresentationHandler(
                 updateProjectPresentationData,
                 requestingContributor
         )?.let {
+
             val outputProjectPresentation =
                 it.convertToDto(
                     requestingContributor,
                     apiConfigs,
                     request,
                 )
+
             ok().contentType(MediaTypes.HAL_FORMS_JSON).bodyValueAndAwait(outputProjectPresentation)
-        } ?: resolveNotFound("Can't update this project presentation", "Project Presentation")
+
+        } ?:
+            resolveNotFound("Can't update this project presentation", "Project Presentation")
     }
 }
 
