@@ -203,7 +203,7 @@ class ProjectsPresentationHandlerUnitTest {
                 service.updateProjectPresentation(
                     "id1",
                     ofType(ProjectPresentation::class),
-                    mockedSimpleContributor
+                    mockedSimpleContributor,
                 )
             } returns mockedProjectPresentation
 
@@ -220,7 +220,7 @@ class ProjectsPresentationHandlerUnitTest {
                 service.updateProjectPresentation(
                     "id1",
                     ofType(ProjectPresentation::class),
-                    mockedSimpleContributor
+                    mockedSimpleContributor,
                 )
             }
         }

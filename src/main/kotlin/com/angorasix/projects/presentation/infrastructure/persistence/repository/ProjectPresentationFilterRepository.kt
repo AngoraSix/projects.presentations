@@ -14,7 +14,7 @@ import kotlinx.coroutines.flow.Flow
 interface ProjectPresentationFilterRepository {
     fun findUsingFilter(filter: ListProjectPresentationsFilter): Flow<ProjectPresentation>
     suspend fun findByIdForContributor(
-            filter: ListProjectPresentationsFilter,
-            requestingContributor: SimpleContributor?,
+        filter: ListProjectPresentationsFilter,
+        requestingContributor: SimpleContributor?,
     ): ProjectPresentation?
 }

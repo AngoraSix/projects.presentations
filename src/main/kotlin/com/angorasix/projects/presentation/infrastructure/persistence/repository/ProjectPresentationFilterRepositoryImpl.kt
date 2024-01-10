@@ -25,11 +25,11 @@ class ProjectPresentationFilterRepositoryImpl(val mongoOps: ReactiveMongoOperati
     }
 
     override suspend fun findByIdForContributor(
-            filter: ListProjectPresentationsFilter,
-            requestingContributor: SimpleContributor?,
+        filter: ListProjectPresentationsFilter,
+        requestingContributor: SimpleContributor?,
     ): ProjectPresentation? {
         return mongoOps.find(filter.toQuery(requestingContributor), ProjectPresentation::class.java)
-                .awaitFirstOrNull()
+            .awaitFirstOrNull()
     }
 }
 
@@ -44,7 +44,8 @@ private fun ListProjectPresentationsFilter.toQuery(requestingContributor: Simple
         val presentationNameCriteria = where("referenceName").regex(it, "i")
         val titleCriteria = where("sections.title").regex(it, "i")
         val descriptionCriteria = where("sections.description").regex(it, "i")
-        val titleOrDescriptionOrNameCriteria = Criteria().orOperator(titleCriteria, descriptionCriteria, presentationNameCriteria)
+        val titleOrDescriptionOrNameCriteria =
+            Criteria().orOperator(titleCriteria, descriptionCriteria, presentationNameCriteria)
         query.addCriteria(titleOrDescriptionOrNameCriteria)
     }
 

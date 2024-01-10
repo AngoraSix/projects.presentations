@@ -132,32 +132,36 @@ class ProjectPresentationServiceUnitTest {
 
             coEvery {
                 repository.findByIdForContributor(
-                        ListProjectPresentationsFilter(
-                                listOf("mockedProjectId"),
-                                null,
-                                setOf("1"),
-                                listOf("id1")
-                        ),
-                        mockedSimpleContributor,
+                    ListProjectPresentationsFilter(
+                        listOf("mockedProjectId"),
+                        null,
+                        setOf("1"),
+                        listOf("id1"),
+                    ),
+                    mockedSimpleContributor,
                 )
             } returns mockedExistingProjectPresentation
 
             coEvery { repository.save(any()) } returns savedProjectPresentation
 
             val outputProjectPresentation =
-                service.updateProjectPresentation("id1", mockedUpdateProjectPresentation, mockedSimpleContributor)
+                service.updateProjectPresentation(
+                    "id1",
+                    mockedUpdateProjectPresentation,
+                    mockedSimpleContributor,
+                )
 
             assertThat(outputProjectPresentation).isSameAs(savedProjectPresentation)
 
             coVerifyAll {
                 repository.findByIdForContributor(
-                        ListProjectPresentationsFilter(
-                                listOf("mockedProjectId"),
-                                null,
-                                setOf("1"),
-                                listOf("id1")
-                        ),
-                        mockedSimpleContributor,
+                    ListProjectPresentationsFilter(
+                        listOf("mockedProjectId"),
+                        null,
+                        setOf("1"),
+                        listOf("id1"),
+                    ),
+                    mockedSimpleContributor,
                 )
                 repository.save(any())
             }

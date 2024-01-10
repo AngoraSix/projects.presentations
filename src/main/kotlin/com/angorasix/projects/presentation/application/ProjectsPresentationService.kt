@@ -23,19 +23,19 @@ class ProjectsPresentationService(private val repository: ProjectPresentationRep
         repository.save(projectPresentation)
 
     suspend fun updateProjectPresentation(
-            id: String,
-            updateData: ProjectPresentation,
-            requestingContributor: SimpleContributor
+        id: String,
+        updateData: ProjectPresentation,
+        requestingContributor: SimpleContributor,
     ): ProjectPresentation? {
 
         val projectPresentationToUpdate = repository.findByIdForContributor(
-                ListProjectPresentationsFilter(
-                        listOf(updateData.projectId),
-                        null,
-                        setOf(requestingContributor.contributorId),
-                        listOf(id)
-                ),
-                requestingContributor,
+            ListProjectPresentationsFilter(
+                listOf(updateData.projectId),
+                null,
+                setOf(requestingContributor.contributorId),
+                listOf(id),
+            ),
+            requestingContributor,
         )
 
         return projectPresentationToUpdate?.updateWithData(updateData)?.let { repository.save(it) }

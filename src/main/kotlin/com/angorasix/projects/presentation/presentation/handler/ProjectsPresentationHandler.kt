@@ -96,22 +96,29 @@ class ProjectsPresentationHandler(
 
         val project = try {
             request.awaitBody<ProjectPresentationDto>()
-                    .convertToDomain(setOf(SimpleContributor(requestingContributor.contributorId, emptySet())))
+                .convertToDomain(
+                    setOf(
+                        SimpleContributor(
+                            requestingContributor.contributorId,
+                            emptySet(),
+                        ),
+                    ),
+                )
         } catch (e: IllegalArgumentException) {
             return resolveBadRequest(
-                    e.message ?: "Incorrect Project Presentation body",
-                    "Project Presentation",
+                e.message ?: "Incorrect Project Presentation body",
+                "Project Presentation",
             )
         }
 
         val outputProjectPresentation = service.createProjectPresentation(project)
-                .convertToDto(requestingContributor, apiConfigs, request)
+            .convertToDto(requestingContributor, apiConfigs, request)
 
         val selfLink =
-                outputProjectPresentation.links.getRequiredLink(IanaLinkRelations.SELF).href
+            outputProjectPresentation.links.getRequiredLink(IanaLinkRelations.SELF).href
 
         return created(URI.create(selfLink)).contentType(MediaTypes.HAL_FORMS_JSON)
-                .bodyValueAndAwait(outputProjectPresentation)
+            .bodyValueAndAwait(outputProjectPresentation)
 
     }
 
@@ -142,9 +149,9 @@ class ProjectsPresentationHandler(
         }
 
         return service.updateProjectPresentation(
-                projectId,
-                updateProjectPresentationData,
-                requestingContributor
+            projectId,
+            updateProjectPresentationData,
+            requestingContributor,
         )?.let {
 
             val outputProjectPresentation =
@@ -156,8 +163,7 @@ class ProjectsPresentationHandler(
 
             ok().contentType(MediaTypes.HAL_FORMS_JSON).bodyValueAndAwait(outputProjectPresentation)
 
-        } ?:
-            resolveNotFound("Can't update this project presentation", "Project Presentation")
+        } ?: resolveNotFound("Can't update this project presentation", "Project Presentation")
     }
 }
 
@@ -171,9 +177,9 @@ private fun ProjectPresentation.convertToDto(): ProjectPresentationDto =
     )
 
 private fun ProjectPresentation.convertToDto(
-        requestingContributor: SimpleContributor?,
-        apiConfigs: ApiConfigs,
-        request: ServerRequest,
+    requestingContributor: SimpleContributor?,
+    apiConfigs: ApiConfigs,
+    request: ServerRequest,
 ): ProjectPresentationDto =
     convertToDto().resolveHypermedia(requestingContributor, apiConfigs, request)
 
@@ -228,9 +234,9 @@ private fun PresentationMediaDto.convertToDomain(): PresentationMedia {
 }
 
 private fun ProjectPresentationDto.resolveHypermedia(
-        requestingContributor: SimpleContributor?,
-        apiConfigs: ApiConfigs,
-        request: ServerRequest,
+    requestingContributor: SimpleContributor?,
+    apiConfigs: ApiConfigs,
+    request: ServerRequest,
 ): ProjectPresentationDto {
     val getSingleRoute = apiConfigs.routes.getProjectPresentation
     // self
@@ -243,7 +249,8 @@ private fun ProjectPresentationDto.resolveHypermedia(
 
     // edit ProjectPresentation
     if (requestingContributor != null && admins != null) {
-        if (admins?.map { it.contributorId }?.contains(requestingContributor.contributorId) == true) {
+        if (admins?.map { it.contributorId }
+                ?.contains(requestingContributor.contributorId) == true) {
             val editProjectPresentationRoute = apiConfigs.routes.updateProjectPresentation
             val editProjectPresentationLink =
                 Link.of(
@@ -268,7 +275,7 @@ private fun uriBuilder(request: ServerRequest) = request.requestPath().contextPa
 
 private fun MultiValueMap<String, String>.toQueryFilter(): ListProjectPresentationsFilter {
     return ListProjectPresentationsFilter(
-            projectIds = get(ProjectPresentationQueryParams.PROJECT_IDS.param)?.flatMap { it.split(",") },
-            text = get(ProjectPresentationQueryParams.TEXT.param)?.firstOrNull()
+        projectIds = get(ProjectPresentationQueryParams.PROJECT_IDS.param)?.flatMap { it.split(",") },
+        text = get(ProjectPresentationQueryParams.TEXT.param)?.firstOrNull(),
     )
 }
