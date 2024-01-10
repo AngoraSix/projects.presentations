@@ -105,42 +105,72 @@ class ProjectPresentationServiceUnitTest {
     @kotlinx.coroutines.ExperimentalCoroutinesApi
     fun whenUpdateProjectPresentation_thenServiceRetrieveSavedProjectPresentation() =
         runTest {
+
+            val mockedSimpleContributor = SimpleContributor("1", emptySet())
             val mockedExistingProjectPresentation = mockk<ProjectPresentation>()
+
             every {
                 mockedExistingProjectPresentation.setProperty(ProjectPresentation::referenceName.name) value "mockedUpdatedReferenceName"
             } just Runs
             every {
                 mockedExistingProjectPresentation.setProperty(ProjectPresentation::sections.name) value emptyList<PresentationSection>()
             } just Runs
-            every {
-                mockedExistingProjectPresentation.projectId
-            } returns "mockedProjectId"
+
             val mockedUpdateProjectPresentation = ProjectPresentation(
                 "mockedProjectId",
-                setOf(SimpleContributor("1", emptySet())),
+                setOf(mockedSimpleContributor),
                 "mockedUpdatedReferenceName",
                 emptyList(),
             )
+
             val savedProjectPresentation = ProjectPresentation(
                 "savedMockedProjectId",
-                setOf(SimpleContributor("1", emptySet())),
+                setOf(mockedSimpleContributor),
                 "mockedReferenceName",
                 emptyList(),
             )
-            coEvery { repository.findById("id1") } returns mockedExistingProjectPresentation
+
+            coEvery {
+                repository.findByIdForContributor(
+                    ListProjectPresentationsFilter(
+                        listOf("mockedProjectId"),
+                        null,
+                        setOf("1"),
+                        listOf("id1"),
+                    ),
+                    mockedSimpleContributor,
+                )
+            } returns mockedExistingProjectPresentation
+
             coEvery { repository.save(any()) } returns savedProjectPresentation
+
             val outputProjectPresentation =
-                service.updateProjectPresentation("id1", mockedUpdateProjectPresentation)
+                service.updateProjectPresentation(
+                    "id1",
+                    mockedUpdateProjectPresentation,
+                    mockedSimpleContributor,
+                )
+
             assertThat(outputProjectPresentation).isSameAs(savedProjectPresentation)
+
             coVerifyAll {
-                repository.findById("id1")
+                repository.findByIdForContributor(
+                    ListProjectPresentationsFilter(
+                        listOf("mockedProjectId"),
+                        null,
+                        setOf("1"),
+                        listOf("id1"),
+                    ),
+                    mockedSimpleContributor,
+                )
                 repository.save(any())
             }
+
             verifyAll {
                 mockedExistingProjectPresentation.setProperty(ProjectPresentation::referenceName.name) value "mockedUpdatedReferenceName"
                 mockedExistingProjectPresentation.setProperty(ProjectPresentation::sections.name) value emptyList<PresentationSection>()
-                mockedExistingProjectPresentation.projectId
             }
+
             confirmVerified(mockedExistingProjectPresentation, repository)
         }
 

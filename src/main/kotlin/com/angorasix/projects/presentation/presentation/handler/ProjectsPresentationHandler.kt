@@ -89,25 +89,37 @@ class ProjectsPresentationHandler(
     suspend fun createProjectPresentation(request: ServerRequest): ServerResponse {
         val requestingContributor =
             request.attributes()[AngoraSixInfrastructure.REQUEST_ATTRIBUTE_CONTRIBUTOR_KEY]
-        return if (requestingContributor is SimpleContributor) {
-            val project = try {
-                request.awaitBody<ProjectPresentationDto>()
-                    .convertToDomain(setOf(SimpleContributor(requestingContributor.contributorId, emptySet())))
-            } catch (e: IllegalArgumentException) {
-                return resolveBadRequest(
-                    e.message ?: "Incorrect Project Presentation body",
-                    "Project Presentation",
-                )
-            }
-            val outputProjectPresentation = service.createProjectPresentation(project)
-                .convertToDto(requestingContributor, apiConfigs, request)
-            val selfLink =
-                outputProjectPresentation.links.getRequiredLink(IanaLinkRelations.SELF).href
-            created(URI.create(selfLink)).contentType(MediaTypes.HAL_FORMS_JSON)
-                .bodyValueAndAwait(outputProjectPresentation)
-        } else {
-            resolveBadRequest("Invalid Contributor Header", "Contributor Header")
+
+        if (requestingContributor !is SimpleContributor) {
+            return resolveBadRequest("Invalid Contributor Token", "Contributor Token")
         }
+
+        val project = try {
+            request.awaitBody<ProjectPresentationDto>()
+                .convertToDomain(
+                    setOf(
+                        SimpleContributor(
+                            requestingContributor.contributorId,
+                            emptySet(),
+                        ),
+                    ),
+                )
+        } catch (e: IllegalArgumentException) {
+            return resolveBadRequest(
+                e.message ?: "Incorrect Project Presentation body",
+                "Project Presentation",
+            )
+        }
+
+        val outputProjectPresentation = service.createProjectPresentation(project)
+            .convertToDto(requestingContributor, apiConfigs, request)
+
+        val selfLink =
+            outputProjectPresentation.links.getRequiredLink(IanaLinkRelations.SELF).href
+
+        return created(URI.create(selfLink)).contentType(MediaTypes.HAL_FORMS_JSON)
+            .bodyValueAndAwait(outputProjectPresentation)
+
     }
 
     /**
@@ -119,7 +131,13 @@ class ProjectsPresentationHandler(
     suspend fun updateProjectPresentation(request: ServerRequest): ServerResponse {
         val requestingContributor =
             request.attributes()[AngoraSixInfrastructure.REQUEST_ATTRIBUTE_CONTRIBUTOR_KEY]
+
+        if (requestingContributor !is SimpleContributor) {
+            return resolveBadRequest("Invalid Contributor Token", "Contributor Token")
+        }
+
         val projectId = request.pathVariable("id")
+
         val updateProjectPresentationData = try {
             request.awaitBody<ProjectPresentationDto>()
                 .let { it.convertToDomain(it.admins ?: emptySet()) }
@@ -129,14 +147,22 @@ class ProjectsPresentationHandler(
                 "Project Presentation",
             )
         }
-        return service.updateProjectPresentation(projectId, updateProjectPresentationData)?.let {
+
+        return service.updateProjectPresentation(
+            projectId,
+            updateProjectPresentationData,
+            requestingContributor,
+        )?.let {
+
             val outputProjectPresentation =
                 it.convertToDto(
-                    requestingContributor as? SimpleContributor,
+                    requestingContributor,
                     apiConfigs,
                     request,
                 )
+
             ok().contentType(MediaTypes.HAL_FORMS_JSON).bodyValueAndAwait(outputProjectPresentation)
+
         } ?: resolveNotFound("Can't update this project presentation", "Project Presentation")
     }
 }
@@ -151,11 +177,11 @@ private fun ProjectPresentation.convertToDto(): ProjectPresentationDto =
     )
 
 private fun ProjectPresentation.convertToDto(
-    simpleContributor: SimpleContributor?,
+    requestingContributor: SimpleContributor?,
     apiConfigs: ApiConfigs,
     request: ServerRequest,
 ): ProjectPresentationDto =
-    convertToDto().resolveHypermedia(simpleContributor, apiConfigs, request)
+    convertToDto().resolveHypermedia(requestingContributor, apiConfigs, request)
 
 private fun ProjectPresentationDto.convertToDomain(
     admins: Set<SimpleContributor>,
@@ -208,7 +234,7 @@ private fun PresentationMediaDto.convertToDomain(): PresentationMedia {
 }
 
 private fun ProjectPresentationDto.resolveHypermedia(
-    simpleContributor: SimpleContributor?,
+    requestingContributor: SimpleContributor?,
     apiConfigs: ApiConfigs,
     request: ServerRequest,
 ): ProjectPresentationDto {
@@ -222,8 +248,9 @@ private fun ProjectPresentationDto.resolveHypermedia(
     add(selfLinkWithDefaultAffordance)
 
     // edit ProjectPresentation
-    if (simpleContributor != null && admins != null) {
-        if (admins?.map { it.contributorId }?.contains(simpleContributor.contributorId) == true) {
+    if (requestingContributor != null && admins != null) {
+        if (admins?.map { it.contributorId }
+                ?.contains(requestingContributor.contributorId) == true) {
             val editProjectPresentationRoute = apiConfigs.routes.updateProjectPresentation
             val editProjectPresentationLink =
                 Link.of(
@@ -248,7 +275,7 @@ private fun uriBuilder(request: ServerRequest) = request.requestPath().contextPa
 
 private fun MultiValueMap<String, String>.toQueryFilter(): ListProjectPresentationsFilter {
     return ListProjectPresentationsFilter(
-            projectIds = get(ProjectPresentationQueryParams.PROJECT_IDS.param)?.flatMap { it.split(",") },
-            text = get(ProjectPresentationQueryParams.TEXT.param)?.firstOrNull()
+        projectIds = get(ProjectPresentationQueryParams.PROJECT_IDS.param)?.flatMap { it.split(",") },
+        text = get(ProjectPresentationQueryParams.TEXT.param)?.firstOrNull(),
     )
 }

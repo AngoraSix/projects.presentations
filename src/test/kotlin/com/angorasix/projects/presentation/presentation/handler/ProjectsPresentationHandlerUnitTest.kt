@@ -144,7 +144,7 @@ class ProjectsPresentationHandlerUnitTest {
             val responseBody = response.entity()
             assertThat(responseBody.content?.status).isEqualTo(HttpStatus.BAD_REQUEST)
             var properties = responseBody.content?.properties as Map<String, Any>?
-            assertThat(properties?.get("errorCode") as String).isEqualTo("CONTRIBUTOR_HEADER_INVALID")
+            assertThat(properties?.get("errorCode") as String).isEqualTo("CONTRIBUTOR_TOKEN_INVALID")
             Unit
         }
 
@@ -203,6 +203,7 @@ class ProjectsPresentationHandlerUnitTest {
                 service.updateProjectPresentation(
                     "id1",
                     ofType(ProjectPresentation::class),
+                    mockedSimpleContributor,
                 )
             } returns mockedProjectPresentation
 
@@ -219,6 +220,7 @@ class ProjectsPresentationHandlerUnitTest {
                 service.updateProjectPresentation(
                     "id1",
                     ofType(ProjectPresentation::class),
+                    mockedSimpleContributor,
                 )
             }
         }
