@@ -49,7 +49,7 @@ private fun ListProjectPresentationsFilter.toQuery(requestingContributor: Simple
         query.addCriteria(titleOrDescriptionOrNameCriteria)
     }
 
-    if (requestingContributor?.contributorId != null && adminId != null) {
+    if (adminId != null && requestingContributor != null) {
         query.addCriteria(where("admins.contributorId").`in`(adminId + requestingContributor.contributorId))
     }
 
