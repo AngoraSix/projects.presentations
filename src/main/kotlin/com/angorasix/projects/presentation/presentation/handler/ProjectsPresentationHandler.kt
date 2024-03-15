@@ -69,14 +69,12 @@ class ProjectsPresentationHandler(
             request.attributes()[AngoraSixInfrastructure.REQUEST_ATTRIBUTE_CONTRIBUTOR_KEY]
         val projectPresentationId = request.pathVariable("id")
         return service.findSingleProjectPresentation(projectPresentationId)?.let {
-            val outputProjectPresentation =
-                it.convertToDto(
-                    requestingContributor as? SimpleContributor,
-                    apiConfigs,
-                    request,
-                )
-            ok().contentType(MediaTypes.HAL_FORMS_JSON)
-                .bodyValueAndAwait(outputProjectPresentation)
+            val outputProjectPresentation = it.convertToDto(
+                requestingContributor as? SimpleContributor,
+                apiConfigs,
+                request,
+            )
+            ok().contentType(MediaTypes.HAL_FORMS_JSON).bodyValueAndAwait(outputProjectPresentation)
         } ?: resolveNotFound("Can't find Project Presentation", "Project Presentation")
     }
 
@@ -90,13 +88,11 @@ class ProjectsPresentationHandler(
         val requestingContributor =
             request.attributes()[AngoraSixInfrastructure.REQUEST_ATTRIBUTE_CONTRIBUTOR_KEY]
 
-        if (requestingContributor !is SimpleContributor) {
-            return resolveBadRequest("Invalid Contributor Token", "Contributor Token")
-        }
-
-        val project = try {
-            request.awaitBody<ProjectPresentationDto>()
-                .convertToDomain(
+        return if (requestingContributor !is SimpleContributor) {
+            resolveBadRequest("Invalid Contributor Token", "Contributor Token")
+        } else {
+            val project = try {
+                request.awaitBody<ProjectPresentationDto>().convertToDomain(
                     setOf(
                         SimpleContributor(
                             requestingContributor.contributorId,
@@ -104,22 +100,22 @@ class ProjectsPresentationHandler(
                         ),
                     ),
                 )
-        } catch (e: IllegalArgumentException) {
-            return resolveBadRequest(
-                e.message ?: "Incorrect Project Presentation body",
-                "Project Presentation",
-            )
+            } catch (e: IllegalArgumentException) {
+                return resolveBadRequest(
+                    e.message ?: "Incorrect Project Presentation body",
+                    "Project Presentation",
+                )
+            }
+
+            val outputProjectPresentation = service.createProjectPresentation(project)
+                .convertToDto(requestingContributor, apiConfigs, request)
+
+            val selfLink =
+                outputProjectPresentation.links.getRequiredLink(IanaLinkRelations.SELF).href
+
+            created(URI.create(selfLink)).contentType(MediaTypes.HAL_FORMS_JSON)
+                .bodyValueAndAwait(outputProjectPresentation)
         }
-
-        val outputProjectPresentation = service.createProjectPresentation(project)
-            .convertToDto(requestingContributor, apiConfigs, request)
-
-        val selfLink =
-            outputProjectPresentation.links.getRequiredLink(IanaLinkRelations.SELF).href
-
-        return created(URI.create(selfLink)).contentType(MediaTypes.HAL_FORMS_JSON)
-            .bodyValueAndAwait(outputProjectPresentation)
-
     }
 
     /**
@@ -132,49 +128,46 @@ class ProjectsPresentationHandler(
         val requestingContributor =
             request.attributes()[AngoraSixInfrastructure.REQUEST_ATTRIBUTE_CONTRIBUTOR_KEY]
 
-        if (requestingContributor !is SimpleContributor) {
-            return resolveBadRequest("Invalid Contributor Token", "Contributor Token")
-        }
+        return if (requestingContributor !is SimpleContributor) {
+            resolveBadRequest("Invalid Contributor Token", "Contributor Token")
+        } else {
+            val projectId = request.pathVariable("id")
 
-        val projectId = request.pathVariable("id")
+            val updateProjectPresentationData = try {
+                request.awaitBody<ProjectPresentationDto>()
+                    .let { it.convertToDomain(it.admins ?: emptySet()) }
+            } catch (e: IllegalArgumentException) {
+                return resolveBadRequest(
+                    e.message ?: "Incorrect Project Presentation body",
+                    "Project Presentation",
+                )
+            }
 
-        val updateProjectPresentationData = try {
-            request.awaitBody<ProjectPresentationDto>()
-                .let { it.convertToDomain(it.admins ?: emptySet()) }
-        } catch (e: IllegalArgumentException) {
-            return resolveBadRequest(
-                e.message ?: "Incorrect Project Presentation body",
-                "Project Presentation",
-            )
-        }
-
-        return service.updateProjectPresentation(
-            projectId,
-            updateProjectPresentationData,
-            requestingContributor,
-        )?.let {
-
-            val outputProjectPresentation =
-                it.convertToDto(
+            service.updateProjectPresentation(
+                projectId,
+                updateProjectPresentationData,
+                requestingContributor,
+            )?.let {
+                val outputProjectPresentation = it.convertToDto(
                     requestingContributor,
                     apiConfigs,
                     request,
                 )
 
-            ok().contentType(MediaTypes.HAL_FORMS_JSON).bodyValueAndAwait(outputProjectPresentation)
-
-        } ?: resolveNotFound("Can't update this project presentation", "Project Presentation")
+                ok().contentType(MediaTypes.HAL_FORMS_JSON)
+                    .bodyValueAndAwait(outputProjectPresentation)
+            } ?: resolveNotFound("Can't update this project presentation", "Project Presentation")
+        }
     }
 }
 
-private fun ProjectPresentation.convertToDto(): ProjectPresentationDto =
-    ProjectPresentationDto(
-        projectId,
-        admins,
-        referenceName,
-        sections?.map { it.convertToDto() },
-        id,
-    )
+private fun ProjectPresentation.convertToDto(): ProjectPresentationDto = ProjectPresentationDto(
+    projectId,
+    admins,
+    referenceName,
+    sections?.map { it.convertToDto() },
+    id,
+)
 
 private fun ProjectPresentation.convertToDto(
     requestingContributor: SimpleContributor?,
@@ -249,16 +242,17 @@ private fun ProjectPresentationDto.resolveHypermedia(
 
     // edit ProjectPresentation
     if (requestingContributor != null && admins != null) {
-        if (admins?.map { it.contributorId }
-                ?.contains(requestingContributor.contributorId) == true) {
+        if (admins?.map { it.contributorId }?.contains(
+                requestingContributor.contributorId,
+            ) == true
+        ) {
             val editProjectPresentationRoute = apiConfigs.routes.updateProjectPresentation
-            val editProjectPresentationLink =
-                Link.of(
-                    uriBuilder(request).path(editProjectPresentationRoute.resolvePath())
-                        .build().toUriString(),
-                ).withTitle(editProjectPresentationRoute.name)
-                    .withName(editProjectPresentationRoute.name)
-                    .withRel(editProjectPresentationRoute.name).expand(id)
+            val editProjectPresentationLink = Link.of(
+                uriBuilder(request).path(editProjectPresentationRoute.resolvePath()).build()
+                    .toUriString(),
+            ).withTitle(editProjectPresentationRoute.name)
+                .withName(editProjectPresentationRoute.name)
+                .withRel(editProjectPresentationRoute.name).expand(id)
             val editProjectPresentationAffordanceLink =
                 Affordances.of(editProjectPresentationLink).afford(HttpMethod.PUT)
                     .withName(editProjectPresentationRoute.name).toLink()
