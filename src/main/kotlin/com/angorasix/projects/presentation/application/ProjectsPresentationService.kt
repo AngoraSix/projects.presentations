@@ -27,7 +27,6 @@ class ProjectsPresentationService(private val repository: ProjectPresentationRep
         updateData: ProjectPresentation,
         requestingContributor: SimpleContributor,
     ): ProjectPresentation? {
-
         val projectPresentationToUpdate = repository.findByIdForContributor(
             ListProjectPresentationsFilter(
                 listOf(updateData.projectId),
@@ -39,7 +38,6 @@ class ProjectsPresentationService(private val repository: ProjectPresentationRep
         )
 
         return projectPresentationToUpdate?.updateWithData(updateData)?.let { repository.save(it) }
-
     }
 
     private fun ProjectPresentation.updateWithData(other: ProjectPresentation): ProjectPresentation {

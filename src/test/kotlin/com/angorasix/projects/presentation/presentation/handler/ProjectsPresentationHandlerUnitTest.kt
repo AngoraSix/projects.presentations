@@ -65,6 +65,7 @@ class ProjectsPresentationHandlerUnitTest {
 
     @Test
     @Throws(Exception::class)
+    @Suppress("UNCHECKED_CAST")
     fun `Given existing project presentations - When list presentations - Then handler retrieves Ok Response`() =
         runTest {
             val mockedExchange = MockServerWebExchange.from(
@@ -72,16 +73,14 @@ class ProjectsPresentationHandlerUnitTest {
             )
             val mockedRequest: ServerRequest =
                 MockServerRequest.builder().exchange(mockedExchange).build()
-            val mockedProjectPresentation =
-                mockPresentation()
+            val mockedProjectPresentation = mockPresentation()
             val retrievedProjectPresentation = flowOf(mockedProjectPresentation)
             coEvery { service.findProjectPresentations(ListProjectPresentationsFilter()) } returns retrievedProjectPresentation
 
             val outputResponse = handler.listProjectPresentations(mockedRequest)
 
             assertThat(outputResponse.statusCode()).isEqualTo(HttpStatus.OK)
-            val response = @Suppress("UNCHECKED_CAST")
-            outputResponse as EntityResponse<Flow<ProjectPresentationDto>>
+            val response = outputResponse as EntityResponse<Flow<ProjectPresentationDto>>
             val responseBody = response.entity()
             responseBody.collect {
                 assertThat(it.referenceName).isEqualTo("mockedReferenceName")
@@ -93,6 +92,7 @@ class ProjectsPresentationHandlerUnitTest {
 
     @Test
     @Throws(Exception::class)
+    @Suppress("UNCHECKED_CAST")
     fun `Given request with project and RequestingContributor - When create project - Then handler retrieves Created`() =
         runBlocking { // = runBlockingTest { // until we resolve why service.createProject is hanging https://github.com/Kotlin/kotlinx.coroutines/issues/1204
             val mockedProjectPresentationDto = mockPresentationDto()
@@ -100,20 +100,17 @@ class ProjectsPresentationHandlerUnitTest {
             val mockedExchange = MockServerWebExchange.from(
                 MockServerHttpRequest.get(routeConfigs.createProjectPresentation.path).build(),
             )
-            val mockedRequest: ServerRequest = MockServerRequest.builder()
-                .attribute(
-                    AngoraSixInfrastructure.REQUEST_ATTRIBUTE_CONTRIBUTOR_KEY,
-                    mockedSimpleContributor,
-                )
-                .exchange(mockedExchange).body(mono { mockedProjectPresentationDto })
+            val mockedRequest: ServerRequest = MockServerRequest.builder().attribute(
+                AngoraSixInfrastructure.REQUEST_ATTRIBUTE_CONTRIBUTOR_KEY,
+                mockedSimpleContributor,
+            ).exchange(mockedExchange).body(mono { mockedProjectPresentationDto })
             val mockedProjectPresentation = mockPresentation()
             coEvery { service.createProjectPresentation(ofType(ProjectPresentation::class)) } returns mockedProjectPresentation
 
             val outputResponse = handler.createProjectPresentation(mockedRequest)
 
             assertThat(outputResponse.statusCode()).isEqualTo(HttpStatus.CREATED)
-            val response = @Suppress("UNCHECKED_CAST")
-            outputResponse as EntityResponse<ProjectPresentationDto>
+            val response = outputResponse as EntityResponse<ProjectPresentationDto>
             val responseBody = response.entity()
             assertThat(responseBody).isNotSameAs(mockedProjectPresentationDto)
             assertThat(responseBody.projectId).isEqualTo("mockedProjectId")
@@ -124,23 +121,23 @@ class ProjectsPresentationHandlerUnitTest {
 
     @Test
     @Throws(Exception::class)
+    @Suppress("UNCHECKED_CAST")
     fun `Given request with project and no RequestingContributor - When create project - Then handler retrieves Bad Request`() =
         runBlocking { // = runBlockingTest { // until we resolve why service.createProject is hanging https://github.com/Kotlin/kotlinx.coroutines/issues/1204
             val mockedProjectPresentationDto = mockPresentationDto()
             val mockedExchange = MockServerWebExchange.from(
                 MockServerHttpRequest.get(routeConfigs.createProjectPresentation.path).build(),
             )
-            val mockedRequest: ServerRequest =
-                MockServerRequest.builder().exchange(mockedExchange)
-                    .body(mono { mockedProjectPresentationDto })
+            val mockedRequest: ServerRequest = MockServerRequest.builder().exchange(mockedExchange)
+                .body(mono { mockedProjectPresentationDto })
             val mockedProject = mockPresentation()
             coEvery { service.createProjectPresentation(ofType(ProjectPresentation::class)) } returns mockedProject
 
             val outputResponse = handler.createProjectPresentation(mockedRequest)
 
             assertThat(outputResponse.statusCode()).isEqualTo(HttpStatus.BAD_REQUEST)
-            val response = @Suppress("UNCHECKED_CAST")
-            outputResponse as EntityResponse<EntityModel<Problem.ExtendedProblem<Any>>>
+            val response =
+                outputResponse as EntityResponse<EntityModel<Problem.ExtendedProblem<Any>>>
             val responseBody = response.entity()
             assertThat(responseBody.content?.status).isEqualTo(HttpStatus.BAD_REQUEST)
             var properties = responseBody.content?.properties as Map<String, Any>?
@@ -150,32 +147,28 @@ class ProjectsPresentationHandlerUnitTest {
 
     @Test
     @Throws(Exception::class)
+    @Suppress("UNCHECKED_CAST")
     fun `Given request with invalid project presentation - When update project presentation - Then handler retrieves Bad Request`() =
         runBlocking { // = runBlockingTest { // until we resolve why service.createProject is hanging https://github.com/Kotlin/kotlinx.coroutines/issues/1204
-            val mockedProjectPresentationDto =
-                ProjectPresentationDto(
-                    "mockedProjectId",
-                    setOf(SimpleContributor("1", emptySet())),
-                    null,
-                    emptyList(),
-                )
+            val mockedProjectPresentationDto = ProjectPresentationDto(
+                "mockedProjectId",
+                setOf(SimpleContributor("1", emptySet())),
+                null,
+                emptyList(),
+            )
             val mockedSimpleContributor = SimpleContributor("mockedId")
             val mockedExchange = MockServerWebExchange.from(
                 MockServerHttpRequest.get("/id1-mocked").build(),
             )
             val mockedRequest: ServerRequest =
-                MockServerRequest.builder().exchange(mockedExchange)
-                    .attribute(
-                        AngoraSixInfrastructure.REQUEST_ATTRIBUTE_CONTRIBUTOR_KEY,
-                        mockedSimpleContributor,
-                    )
-                    .pathVariable("id", "id1")
-                    .body(mono { mockedProjectPresentationDto })
+                MockServerRequest.builder().exchange(mockedExchange).attribute(
+                    AngoraSixInfrastructure.REQUEST_ATTRIBUTE_CONTRIBUTOR_KEY,
+                    mockedSimpleContributor,
+                ).pathVariable("id", "id1").body(mono { mockedProjectPresentationDto })
             val outputResponse = handler.createProjectPresentation(mockedRequest)
 
             assertThat(outputResponse.statusCode()).isEqualTo(HttpStatus.BAD_REQUEST)
-            val response = @Suppress("UNCHECKED_CAST")
-            outputResponse as EntityResponse<EntityModel<Problem.ExtendedProblem<Any>>>
+            val response = outputResponse as EntityResponse<EntityModel<Problem.ExtendedProblem<Any>>>
             val responseBody = response.entity()
             assertThat(responseBody.content?.status).isEqualTo(HttpStatus.BAD_REQUEST)
             var properties = responseBody.content?.properties as Map<String, Any>?
@@ -185,18 +178,17 @@ class ProjectsPresentationHandlerUnitTest {
 
     @Test
     @Throws(Exception::class)
+    @Suppress("UNCHECKED_CAST")
     fun `Given request with project and RequestingContributor - When update project - Then handler retrieves Updated`() =
         runBlocking { // = runBlockingTest { // until we resolve why service.createProject is hanging https://github.com/Kotlin/kotlinx.coroutines/issues/1204
             val mockedProjectPresentationDto = mockPresentationDto()
             val mockedSimpleContributor = SimpleContributor("mockedId")
             val mockedExchange =
                 MockServerWebExchange.from(MockServerHttpRequest.get("/id1-mocked").build())
-            val mockedRequest: ServerRequest = MockServerRequest.builder()
-                .attribute(
-                    AngoraSixInfrastructure.REQUEST_ATTRIBUTE_CONTRIBUTOR_KEY,
-                    mockedSimpleContributor,
-                )
-                .pathVariable("id", "id1").exchange(mockedExchange)
+            val mockedRequest: ServerRequest = MockServerRequest.builder().attribute(
+                AngoraSixInfrastructure.REQUEST_ATTRIBUTE_CONTRIBUTOR_KEY,
+                mockedSimpleContributor,
+            ).pathVariable("id", "id1").exchange(mockedExchange)
                 .body(mono { mockedProjectPresentationDto })
             val mockedProjectPresentation = mockPresentation("Updated")
             coEvery {
@@ -210,8 +202,7 @@ class ProjectsPresentationHandlerUnitTest {
             val outputResponse = handler.updateProjectPresentation(mockedRequest)
 
             assertThat(outputResponse.statusCode()).isEqualTo(HttpStatus.OK)
-            val response = @Suppress("UNCHECKED_CAST")
-            outputResponse as EntityResponse<ProjectPresentationDto>
+            val response = outputResponse as EntityResponse<ProjectPresentationDto>
             val responseBody = response.entity()
             assertThat(responseBody).isNotSameAs(mockedProjectPresentationDto)
             assertThat(responseBody.referenceName).isEqualTo("mockedReferenceNameUpdated")
@@ -227,30 +218,25 @@ class ProjectsPresentationHandlerUnitTest {
 
     @Test
     @Throws(Exception::class)
-    @kotlinx.coroutines.ExperimentalCoroutinesApi
+    @ExperimentalCoroutinesApi
+    @Suppress("UNCHECKED_CAST")
     fun `Given existing projects - When get project for non Admin contributor - Then handler retrieves Ok Response without Edit link`() =
         runTest {
             val projectId = "projectId"
             val mockedSimpleContributor = SimpleContributor("mockedId")
             val mockedExchange =
                 MockServerWebExchange.from(MockServerHttpRequest.get("/id1-mocked").build())
-            val mockedRequest: ServerRequest =
-                MockServerRequest.builder()
-                    .attribute(
-                        AngoraSixInfrastructure.REQUEST_ATTRIBUTE_CONTRIBUTOR_KEY,
-                        mockedSimpleContributor,
-                    )
-                    .pathVariable("id", projectId).exchange(mockedExchange).build()
-            val mockedProjectPresentation =
-                mockPresentation()
+            val mockedRequest: ServerRequest = MockServerRequest.builder().attribute(
+                AngoraSixInfrastructure.REQUEST_ATTRIBUTE_CONTRIBUTOR_KEY,
+                mockedSimpleContributor,
+            ).pathVariable("id", projectId).exchange(mockedExchange).build()
+            val mockedProjectPresentation = mockPresentation()
             coEvery { service.findSingleProjectPresentation(projectId) } returns mockedProjectPresentation
 
             val outputResponse = handler.getProjectPresentation(mockedRequest)
 
             assertThat(outputResponse.statusCode()).isEqualTo(HttpStatus.OK)
-            val responseBody =
-                @Suppress("UNCHECKED_CAST")
-                (outputResponse as EntityResponse<ProjectPresentationDto>).entity()
+            val responseBody = (outputResponse as EntityResponse<ProjectPresentationDto>).entity()
             assertThat(responseBody.referenceName).isEqualTo("mockedReferenceName")
             assertThat(responseBody.links.hasSize(1)).isTrue
             assertThat(responseBody.links.getLink("updateProject")).isEmpty
@@ -259,7 +245,7 @@ class ProjectsPresentationHandlerUnitTest {
 
     @Test
     @Throws(Exception::class)
-    @kotlinx.coroutines.ExperimentalCoroutinesApi
+    @ExperimentalCoroutinesApi
     fun `Given existing projects - When get project for Admin Contributor - Then handler retrieves Ok Response with Edit link`() =
         runTest {
             val projectId = "projectId"
@@ -267,23 +253,18 @@ class ProjectsPresentationHandlerUnitTest {
 
             val mockedExchange =
                 MockServerWebExchange.from(MockServerHttpRequest.get("/id1-mocked").build())
-            val mockedRequest: ServerRequest =
-                MockServerRequest.builder()
-                    .attribute(
-                        AngoraSixInfrastructure.REQUEST_ATTRIBUTE_CONTRIBUTOR_KEY,
-                        mockedSimpleContributor,
-                    )
-                    .pathVariable("id", projectId).exchange(mockedExchange).build()
-            val mockedProjectPresentation =
-                mockPresentation()
+            val mockedRequest: ServerRequest = MockServerRequest.builder().attribute(
+                AngoraSixInfrastructure.REQUEST_ATTRIBUTE_CONTRIBUTOR_KEY,
+                mockedSimpleContributor,
+            ).pathVariable("id", projectId).exchange(mockedExchange).build()
+            val mockedProjectPresentation = mockPresentation()
             coEvery { service.findSingleProjectPresentation(projectId) } returns mockedProjectPresentation
 
             val outputResponse = handler.getProjectPresentation(mockedRequest)
 
             assertThat(outputResponse.statusCode()).isEqualTo(HttpStatus.OK)
-            val responseBody =
-                @Suppress("UNCHECKED_CAST")
-                (outputResponse as EntityResponse<ProjectPresentationDto>).entity()
+            @Suppress("UNCHECKED_CAST")
+            val responseBody = (outputResponse as EntityResponse<ProjectPresentationDto>).entity()
             assertThat(responseBody.referenceName).isEqualTo("mockedReferenceName")
             assertThat(responseBody.links.hasSize(2)).isTrue()
             assertThat(responseBody.links.getLink("updateProject")).isNotNull

@@ -27,12 +27,10 @@ class ProjectsPresentationSecurityConfiguration {
     @Bean
     fun springSecurityFilterChain(http: ServerHttpSecurity): SecurityWebFilterChain {
         http.authorizeExchange { exchanges: ServerHttpSecurity.AuthorizeExchangeSpec ->
-            exchanges
-                .pathMatchers(
-                    HttpMethod.GET,
-                    "/projects-presentation/**",
-                ).permitAll()
-                .anyExchange().authenticated()
+            exchanges.pathMatchers(
+                HttpMethod.GET,
+                "/projects-presentation/**",
+            ).permitAll().anyExchange().authenticated()
         }.oauth2ResourceServer { oauth2 -> oauth2.jwt(Customizer.withDefaults()) }
         return http.build()
     }
