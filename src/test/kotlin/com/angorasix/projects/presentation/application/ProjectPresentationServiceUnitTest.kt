@@ -125,7 +125,7 @@ class ProjectPresentationServiceUnitTest {
         )
 
         coEvery {
-            repository.findByIdForContributor(
+            repository.findForContributorUsingFilter(
                 ListProjectPresentationsFilter(
                     listOf("mockedProjectId"),
                     null,
@@ -147,7 +147,7 @@ class ProjectPresentationServiceUnitTest {
         assertThat(outputProjectPresentation).isSameAs(savedProjectPresentation)
 
         coVerifyAll {
-            repository.findByIdForContributor(
+            repository.findForContributorUsingFilter(
                 ListProjectPresentationsFilter(
                     listOf("mockedProjectId"),
                     null,

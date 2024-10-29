@@ -2,7 +2,7 @@ context:
   initializer:
     classes: com.angorasix.projects.presentation.BeansInitializer
 server:
-  port: ${A6_PROJECTS_PRESENTATIONS_PORT:9083}
+  port: ${A6_PROJECTS_PRESENTATIONS_PORT:10201}
 
 spring:
   config:

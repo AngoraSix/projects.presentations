@@ -13,7 +13,7 @@ import kotlinx.coroutines.flow.Flow
  */
 interface ProjectPresentationFilterRepository {
     fun findUsingFilter(filter: ListProjectPresentationsFilter): Flow<ProjectPresentation>
-    suspend fun findByIdForContributor(
+    suspend fun findForContributorUsingFilter(
         filter: ListProjectPresentationsFilter,
         requestingContributor: SimpleContributor?,
     ): ProjectPresentation?
