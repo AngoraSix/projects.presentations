@@ -27,7 +27,7 @@ class ProjectsPresentationService(private val repository: ProjectPresentationRep
         updateData: ProjectPresentation,
         requestingContributor: SimpleContributor,
     ): ProjectPresentation? {
-        val projectPresentationToUpdate = repository.findByIdForContributor(
+        val projectPresentationToUpdate = repository.findForContributorUsingFilter(
             ListProjectPresentationsFilter(
                 listOf(updateData.projectId),
                 null,
