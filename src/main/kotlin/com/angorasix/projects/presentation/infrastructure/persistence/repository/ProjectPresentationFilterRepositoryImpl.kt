@@ -36,9 +36,9 @@ class ProjectPresentationFilterRepositoryImpl(val mongoOps: ReactiveMongoOperati
 private fun ListProjectPresentationsFilter.toQuery(requestingContributor: SimpleContributor? = null): Query {
     val query = Query()
 
-    ids?.let { query.addCriteria(where("_id").`in`(it)) }
+    ids?.let { query.addCriteria(where("_id").`in`(it as Collection<Any>)) }
 
-    projectIds?.let { query.addCriteria(where("projectId").`in`(it)) }
+    projectIds?.let { query.addCriteria(where("projectId").`in`(it as Collection<Any>)) }
 
     text?.let {
         val presentationNameCriteria = where("referenceName").regex(it, "i")
