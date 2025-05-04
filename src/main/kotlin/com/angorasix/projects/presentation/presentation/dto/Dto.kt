@@ -1,6 +1,6 @@
 package com.angorasix.projects.presentation.presentation.dto
 
-import com.angorasix.commons.domain.SimpleContributor
+import com.angorasix.commons.domain.A6Contributor
 import org.springframework.hateoas.RepresentationModel
 
 /**
@@ -10,7 +10,7 @@ import org.springframework.hateoas.RepresentationModel
  */
 data class ProjectPresentationDto(
     val projectId: String? = null,
-    var admins: Set<SimpleContributor>? = mutableSetOf(),
+    var admins: Set<A6Contributor>? = mutableSetOf(),
     val referenceName: String? = null,
     val sections: Collection<PresentationSectionDto>? = null,
     val id: String? = null,

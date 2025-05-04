@@ -1,6 +1,6 @@
 package com.angorasix.projects.presentation.infrastructure.persistence.repository
 
-import com.angorasix.commons.domain.SimpleContributor
+import com.angorasix.commons.domain.A6Contributor
 import com.angorasix.projects.presentation.domain.projectpresentation.ProjectPresentation
 import com.angorasix.projects.presentation.infrastructure.queryfilters.ListProjectPresentationsFilter
 import kotlinx.coroutines.flow.Flow
@@ -17,23 +17,22 @@ import org.springframework.data.mongodb.core.query.Query
  *
  * @author rozagerardo
  */
-class ProjectPresentationFilterRepositoryImpl(val mongoOps: ReactiveMongoOperations) :
-    ProjectPresentationFilterRepository {
-
-    override fun findUsingFilter(filter: ListProjectPresentationsFilter): Flow<ProjectPresentation> {
-        return mongoOps.find(filter.toQuery(), ProjectPresentation::class.java).asFlow()
-    }
+class ProjectPresentationFilterRepositoryImpl(
+    val mongoOps: ReactiveMongoOperations,
+) : ProjectPresentationFilterRepository {
+    override fun findUsingFilter(filter: ListProjectPresentationsFilter): Flow<ProjectPresentation> =
+        mongoOps.find(filter.toQuery(), ProjectPresentation::class.java).asFlow()
 
     override suspend fun findForContributorUsingFilter(
         filter: ListProjectPresentationsFilter,
-        requestingContributor: SimpleContributor?,
-    ): ProjectPresentation? {
-        return mongoOps.find(filter.toQuery(requestingContributor), ProjectPresentation::class.java)
+        requestingContributor: A6Contributor?,
+    ): ProjectPresentation? =
+        mongoOps
+            .find(filter.toQuery(requestingContributor), ProjectPresentation::class.java)
             .awaitFirstOrNull()
-    }
 }
 
-private fun ListProjectPresentationsFilter.toQuery(requestingContributor: SimpleContributor? = null): Query {
+private fun ListProjectPresentationsFilter.toQuery(requestingContributor: A6Contributor? = null): Query {
     val query = Query()
 
     ids?.let { query.addCriteria(where("_id").`in`(it as Collection<Any>)) }

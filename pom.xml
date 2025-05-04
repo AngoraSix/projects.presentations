@@ -6,7 +6,7 @@
 
   <groupId>com.angorasix</groupId>
   <artifactId>projects.presentations</artifactId>
-  <version>0.2.2</version>
+  <version>0.3.0</version>
 
   <name>projects.presentations</name>
   <description>Projects Presentations Service</description>
@@ -14,7 +14,7 @@
   <parent>
     <artifactId>parent-pom-spring-kotlin</artifactId>
     <groupId>com.angorasix</groupId>
-    <version>0.2.2</version>
+    <version>0.3.6</version>
   </parent>
 
   <properties>
@@ -40,7 +40,7 @@
     <dependency>
       <groupId>com.angorasix</groupId>
       <artifactId>commons.core</artifactId>
-      <version>0.2.6</version>
+      <version>0.3.5</version>
     </dependency>
 
     <dependency>

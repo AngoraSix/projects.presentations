@@ -1,12 +1,10 @@
 configs:
   api:
-    headers:
-      contributor: ${A6_PROJECTS_PRESENTATIONS_CONTRIBUTORHEADER:A6-Contributor}
     basePaths:
       projectsPresentation: "/projects-presentation"
-    routes:
       baseListCrudRoute: ""
       baseByIdCrudRoute: "/{id}"
+    routes:
       createProjectPresentation:
         name: createProjectPresentation
         basePaths:
@@ -31,3 +29,5 @@ configs:
           - ${configs.api.basePaths.projectsPresentation}
         method: GET
         path: ${configs.api.routes.baseListCrudRoute}
+    projectPresentationActions:
+      updateProjectPresentation: updateProjectPresentation
