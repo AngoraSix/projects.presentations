@@ -15,36 +15,35 @@ class ProjectsPresentationRouter(
     private val handler: ProjectsPresentationHandler,
     private val apiConfigs: ApiConfigs,
 ) {
-
     /**
      * Main RouterFunction configuration for all endpoints related to ProjectPresentations.
      *
      * @return the [RouterFunction] with all the routes for ProjectPresentations
      */
-    fun projectRouterFunction() = coRouter {
-        filter { request, next ->
-            extractRequestingContributor(
-                request,
-                next,
-            )
-        }
-        apiConfigs.basePaths.projectsPresentation.nest {
-            apiConfigs.routes.baseByIdCrudRoute.nest {
-                method(apiConfigs.routes.updateProjectPresentation.method).nest {
-                    method(
-                        apiConfigs.routes.updateProjectPresentation.method,
-                        handler::updateProjectPresentation,
-                    )
-                }
-                method(apiConfigs.routes.getProjectPresentation.method).nest {
-                    method(
-                        apiConfigs.routes.getProjectPresentation.method,
-                        handler::getProjectPresentation,
-                    )
-                }
+    fun projectPresentationRouterFunction() =
+        coRouter {
+            filter { request, next ->
+                extractRequestingContributor(
+                    request,
+                    next,
+                )
             }
-            apiConfigs.routes.baseListCrudRoute.nest {
-                path(apiConfigs.routes.baseListCrudRoute).nest {
+            apiConfigs.basePaths.projectsPresentation.nest {
+                apiConfigs.basePaths.baseByIdCrudRoute.nest {
+                    method(apiConfigs.routes.updateProjectPresentation.method).nest {
+                        method(
+                            apiConfigs.routes.updateProjectPresentation.method,
+                            handler::updateProjectPresentation,
+                        )
+                    }
+                    method(apiConfigs.routes.getProjectPresentation.method).nest {
+                        method(
+                            apiConfigs.routes.getProjectPresentation.method,
+                            handler::getProjectPresentation,
+                        )
+                    }
+                }
+                apiConfigs.basePaths.baseListCrudRoute.nest {
                     method(apiConfigs.routes.createProjectPresentation.method).nest {
                         method(
                             apiConfigs.routes.createProjectPresentation.method,
@@ -60,5 +59,4 @@ class ProjectsPresentationRouter(
                 }
             }
         }
-    }
 }

@@ -63,72 +63,87 @@ class ProjectPresentationDocsIntegrationTest(
     @Autowired val properties: IntegrationProperties,
     @Autowired val apiConfigs: ApiConfigs,
 ) {
-
     private lateinit var webTestClient: WebTestClient
 
-    var mediaDescription = arrayOf<FieldDescriptor>(
-        fieldWithPath("mediaType").description("The type of media (image, youtube.video, etc)"),
-        fieldWithPath("url").description("URL of the media"),
-        fieldWithPath("thumbnailUrl").description("URL for a thumbnail of the media"),
-        fieldWithPath("resourceId").description("Identifier of the resource"),
-    )
+    var mediaDescription =
+        arrayOf<FieldDescriptor>(
+            fieldWithPath("mediaType").description("The type of media (image, youtube.video, etc)"),
+            fieldWithPath("url").description("URL of the media"),
+            fieldWithPath("thumbnailUrl").description("URL for a thumbnail of the media"),
+            fieldWithPath("resourceId").description("Identifier of the resource"),
+        )
 
-    var sectionDescription = arrayOf<FieldDescriptor>(
-        fieldWithPath("title").description("Title of the presentation section"),
-        fieldWithPath("description").description("Description of the presentation section"),
-        subsectionWithPath("mainMedia").type(PresentationMedia::class.simpleName)
-            .description("A main media for the section"),
-        subsectionWithPath("media[]").type(ArrayOfFieldType(PresentationMedia::class.simpleName))
-            .description("Array of the media associated to the section"),
-    )
+    var sectionDescription =
+        arrayOf<FieldDescriptor>(
+            fieldWithPath("title").description("Title of the presentation section"),
+            fieldWithPath("description").description("Description of the presentation section"),
+            subsectionWithPath("mainMedia")
+                .type(PresentationMedia::class.simpleName)
+                .description("A main media for the section"),
+            subsectionWithPath("media[]")
+                .type(ArrayOfFieldType(PresentationMedia::class.simpleName))
+                .description("Array of the media associated to the section"),
+        )
 
-    var projectDescriptor = arrayOf<FieldDescriptor>(
-        fieldWithPath("referenceName").description("Internal reference name for the presentation"),
-        fieldWithPath("id").description("Project presentation identifier"),
-        fieldWithPath("projectId").description("Identifier of the associated Project Id"),
-        subsectionWithPath("sections[]").type(ArrayOfFieldType(PresentationSection::class.simpleName))
-            .description("Array of the sections that form the project presentation"),
-        subsectionWithPath("links").optional().description("HATEOAS links")
-            .type(JsonFieldType.ARRAY),
-        // until we resolve and unify the list and single response links, all will be marked as optional
-        subsectionWithPath("_links").optional().description("HATEOAS links")
-            .type(JsonFieldType.OBJECT),
-        subsectionWithPath("_templates").optional()
-            .description("HATEOAS HAL-FORM links template info").type(
-                JsonFieldType.OBJECT,
-            ),
-    )
+    var projectDescriptor =
+        arrayOf<FieldDescriptor>(
+            fieldWithPath("referenceName").description("Internal reference name for the presentation"),
+            fieldWithPath("id").description("Project presentation identifier"),
+            fieldWithPath("projectId").description("Identifier of the associated Project Id"),
+            subsectionWithPath("sections[]")
+                .type(ArrayOfFieldType(PresentationSection::class.simpleName))
+                .description("Array of the sections that form the project presentation"),
+            subsectionWithPath("links")
+                .optional()
+                .description("HATEOAS links")
+                .type(JsonFieldType.ARRAY),
+            // until we resolve and unify the list and single response links, all will be marked as optional
+            subsectionWithPath("_links")
+                .optional()
+                .description("HATEOAS links")
+                .type(JsonFieldType.OBJECT),
+            subsectionWithPath("_templates")
+                .optional()
+                .description("HATEOAS HAL-FORM links template info")
+                .type(
+                    JsonFieldType.OBJECT,
+                ),
+        )
 
-    var projectPostBodyDescriptor = arrayOf<FieldDescriptor>(
-        fieldWithPath("referenceName").description("Reference Name of the project"),
-        fieldWithPath("id").ignored(),
-        fieldWithPath("projectId").description("The identifier of the associated Project"),
-        subsectionWithPath("sections[]").type(ArrayOfFieldType(PresentationSection::class.simpleName))
-            .description("Array of the sections that form the project presentation"),
-        fieldWithPath("links[]").ignored(),
-    )
+    var projectPostBodyDescriptor =
+        arrayOf<FieldDescriptor>(
+            fieldWithPath("referenceName").description("Reference Name of the project"),
+            fieldWithPath("id").ignored(),
+            fieldWithPath("projectId").description("The identifier of the associated Project"),
+            subsectionWithPath("sections[]")
+                .type(ArrayOfFieldType(PresentationSection::class.simpleName))
+                .description("Array of the sections that form the project presentation"),
+            fieldWithPath("links[]").ignored(),
+        )
 
     @BeforeAll
-    fun setUpDb() = runBlocking {
-        initializeMongodb(
-            properties.mongodb.baseJsonFile,
-            mongoTemplate,
-            mapper,
-        )
-    }
+    fun setUpDb() =
+        runBlocking {
+            initializeMongodb(
+                properties.mongodb.baseJsonFile,
+                mongoTemplate,
+                mapper,
+            )
+        }
 
     @BeforeEach
     fun setUpWebClient(
         applicationContext: ApplicationContext,
         restDocumentation: RestDocumentationContextProvider,
     ) = runBlocking {
-        webTestClient = WebTestClient.bindToApplicationContext(applicationContext)
-            .configureClient()
-            .responseTimeout(Duration.ofMillis(30000))
-            .filter(
-                documentationConfiguration(restDocumentation),
-            )
-            .build()
+        webTestClient =
+            WebTestClient
+                .bindToApplicationContext(applicationContext)
+                .configureClient()
+                .responseTimeout(Duration.ofMillis(30000))
+                .filter(
+                    documentationConfiguration(restDocumentation),
+                ).build()
     }
 
     @Test
@@ -140,15 +155,17 @@ class ProjectPresentationDocsIntegrationTest(
 
     private fun executeAndDocumentPostCreateProjectRequest() {
         val newProjectPresentation = mockPresentationDto()
-        webTestClient.post()
+        webTestClient
+            .post()
             .uri(
                 "/projects-presentation/",
-            )
-            .accept(MediaType.APPLICATION_JSON)
+            ).accept(MediaType.APPLICATION_JSON)
             .contentType(MediaTypes.HAL_FORMS_JSON)
             .body(Mono.just(newProjectPresentation))
             .exchange()
-            .expectStatus().isCreated.expectBody()
+            .expectStatus()
+            .isCreated
+            .expectBody()
             .consumeWith(
                 document(
                     "project-create",
@@ -170,20 +187,23 @@ class ProjectPresentationDocsIntegrationTest(
     private fun executeAndDocumentGetSingleProjectRequest() {
         val initElementQuery = Query()
         initElementQuery.addCriteria(
-            Criteria.where("referenceName")
+            Criteria
+                .where("referenceName")
                 .`is`("Project Presentation aimed to devs"),
         )
         val elementId =
             mongoTemplate.findOne(initElementQuery, ProjectPresentation::class.java).block()?.id
 
-        webTestClient.get()
+        webTestClient
+            .get()
             .uri(
                 "/projects-presentation/{projectPresentationId}",
                 elementId,
-            )
-            .accept(MediaType.APPLICATION_JSON)
+            ).accept(MediaType.APPLICATION_JSON)
             .exchange()
-            .expectStatus().isOk.expectBody()
+            .expectStatus()
+            .isOk
+            .expectBody()
             .consumeWith(
                 document(
                     "project-single",
@@ -195,17 +215,21 @@ class ProjectPresentationDocsIntegrationTest(
     }
 
     private fun executeAndDocumentGetListProjectsRequest() {
-        webTestClient.get()
+        webTestClient
+            .get()
             .uri("/projects-presentation/")
             .accept(MediaType.APPLICATION_JSON)
             .exchange()
-            .expectStatus().isOk.expectBody()
+            .expectStatus()
+            .isOk
+            .expectBody()
             .consumeWith(
                 document(
                     "project-list",
                     preprocessResponse(prettyPrint()),
                     responseFields(
-                        fieldWithPath("[]").type(ArrayOfFieldType(ProjectPresentation::class.simpleName))
+                        fieldWithPath("[]")
+                            .type(ArrayOfFieldType(ProjectPresentation::class.simpleName))
                             .description("An array of projects"),
                     ).andWithPrefix(
                         "[].",
@@ -225,7 +249,9 @@ class ProjectPresentationDocsIntegrationTest(
             )
     }
 
-    private class ArrayOfFieldType(private val field: String?) {
+    private class ArrayOfFieldType(
+        private val field: String?,
+    ) {
         override fun toString(): String = "Array of $field"
     }
 }

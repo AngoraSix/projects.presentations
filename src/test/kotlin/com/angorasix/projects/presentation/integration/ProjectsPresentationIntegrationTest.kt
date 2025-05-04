@@ -1,6 +1,8 @@
+@file:Suppress("LongMethod")
+
 package com.angorasix.projects.presentation.integration
 
-import com.angorasix.commons.domain.SimpleContributor
+import com.angorasix.commons.domain.A6Contributor
 import com.angorasix.projects.presentation.ProjectsPresentationApplication
 import com.angorasix.projects.presentation.domain.projectpresentation.ProjectPresentation
 import com.angorasix.projects.presentation.infrastructure.config.configurationproperty.api.ApiConfigs
@@ -44,26 +46,32 @@ class ProjectsPresentationIntegrationTest(
     @Autowired val webTestClient: WebTestClient,
     @Autowired val apiConfigs: ApiConfigs,
 ) {
-
     @BeforeAll
-    fun setUp() = runBlocking {
-        initializeMongodb(
-            properties.mongodb.baseJsonFile,
-            mongoTemplate,
-            mapper,
-        )
-    }
+    fun setUp() =
+        runBlocking {
+            initializeMongodb(
+                properties.mongodb.baseJsonFile,
+                mongoTemplate,
+                mapper,
+            )
+        }
 
     @Test
     fun `given base data - when call Get Project Presentation list - then return all persisted projects`() {
-        webTestClient.get()
+        webTestClient
+            .get()
             .uri("/projects-presentation")
             .accept(MediaType.APPLICATION_JSON)
             .exchange()
-            .expectStatus().isOk.expectBody()
-            .jsonPath("$.size()").value(greaterThanOrEqualTo(2))
-            .jsonPath("$..id").exists()
-            .jsonPath("$..projectId").value(hasItems("123withSingleSection", "345MultipleSections"))
+            .expectStatus()
+            .isOk
+            .expectBody()
+            .jsonPath("$.size()")
+            .value(greaterThanOrEqualTo(2))
+            .jsonPath("$..id")
+            .exists()
+            .jsonPath("$..projectId")
+            .value(hasItems("123withSingleSection", "345MultipleSections"))
             .jsonPath("$..sections..description")
             .value(hasItem("Our objective at this stage includes one simple premise: We want to help people create"))
             .jsonPath("$..sections..title")
@@ -72,35 +80,45 @@ class ProjectsPresentationIntegrationTest(
 
     @Test
     fun `given base data - when call Get Project Presentation list filtering by projectId - then return filtered persisted projects`() {
-        webTestClient.get()
+        webTestClient
+            .get()
             .uri { builder ->
-                builder.path("/projects-presentation").queryParam(
-                    ProjectPresentationQueryParams.PROJECT_IDS.param,
-                    "123withSingleSection",
-                ).build()
-            }
-            .accept(MediaType.APPLICATION_JSON)
+                builder
+                    .path("/projects-presentation")
+                    .queryParam(
+                        ProjectPresentationQueryParams.PROJECT_IDS.param,
+                        "123withSingleSection",
+                    ).build()
+            }.accept(MediaType.APPLICATION_JSON)
             .exchange()
-            .expectStatus().isOk.expectBody()
-            .jsonPath("$.size()").value(greaterThanOrEqualTo(1))
-            .jsonPath("$..projectId").value(hasItems("123withSingleSection"))
+            .expectStatus()
+            .isOk
+            .expectBody()
+            .jsonPath("$.size()")
+            .value(greaterThanOrEqualTo(1))
+            .jsonPath("$..projectId")
+            .value(hasItems("123withSingleSection"))
     }
 
     @Test
     fun `given base data - when retrieve Presentation by id - then existing is retrieved`() {
         val initElementQuery = Query()
         initElementQuery.addCriteria(
-            Criteria.where("referenceName")
+            Criteria
+                .where("referenceName")
                 .`is`("Project Presentation aimed to devs"),
         )
         val elementId =
             mongoTemplate.findOne(initElementQuery, ProjectPresentation::class.java).block()?.id
 
-        webTestClient.get()
+        webTestClient
+            .get()
             .uri("/projects-presentation/{projectPresentationId}", elementId)
             .accept(MediaType.APPLICATION_JSON)
             .exchange()
-            .expectStatus().isOk.expectBody()
+            .expectStatus()
+            .isOk
+            .expectBody()
             .jsonPath("$.id")
             .exists()
             .jsonPath("$.projectId")
@@ -125,185 +143,227 @@ class ProjectsPresentationIntegrationTest(
 
     @Test
     fun `given base data - when get non-existing Presentation - then 404 response`() {
-        webTestClient.get()
+        webTestClient
+            .get()
             .uri("/projects-presentation/non-existing-id")
             .accept(MediaType.APPLICATION_JSON)
             .exchange()
-            .expectStatus().isNotFound
+            .expectStatus()
+            .isNotFound
     }
 
     @Test
     fun `when post new Project Presentation - then new project presentation is persisted`() {
-        val projectPresentationBody = ProjectPresentationDto(
-            "567",
-            setOf(SimpleContributor("1", emptySet())),
-            "newReferenceName",
-            listOf(
-                PresentationSectionDto(
-                    "introduction",
-                    "this is a mocked project",
-                    listOf(
+        val projectPresentationBody =
+            ProjectPresentationDto(
+                "567",
+                setOf(A6Contributor("1")),
+                "newReferenceName",
+                listOf(
+                    PresentationSectionDto(
+                        "introduction",
+                        "this is a mocked project",
+                        listOf(
+                            PresentationMediaDto(
+                                "image",
+                                "http://an.image.jpg",
+                                "http://an.image.jpg",
+                                "an.image.jpg",
+                            ),
+                        ),
                         PresentationMediaDto(
-                            "image",
-                            "http://an.image.jpg",
-                            "http://an.image.jpg",
-                            "an.image.jpg",
+                            "video.youtube",
+                            "https://www.youtube.com/watch?v=tHisis4R3soURCeId",
+                            "http://a.video.jpg",
+                            "tHisis4R3soURCeId",
                         ),
                     ),
-                    PresentationMediaDto(
-                        "video.youtube",
-                        "https://www.youtube.com/watch?v=tHisis4R3soURCeId",
-                        "http://a.video.jpg",
-                        "tHisis4R3soURCeId",
-                    ),
                 ),
-            ),
-        )
-        webTestClient.post()
+            )
+        webTestClient
+            .post()
             .uri("/projects-presentation")
             .accept(MediaType.APPLICATION_JSON)
             .contentType(MediaTypes.HAL_FORMS_JSON)
             .body(
                 Mono.just(projectPresentationBody),
                 ProjectPresentationDto::class.java,
-            )
-            .exchange()
-            .expectStatus().isCreated.expectBody()
-            .jsonPath("$.id").exists()
-            .jsonPath("$.projectId").isEqualTo("567")
-            .jsonPath("$.referenceName").isEqualTo("newReferenceName")
-            .jsonPath("$..sections.size()").isEqualTo(1)
-            .jsonPath("$.sections[0].title").isEqualTo("introduction")
-            .jsonPath("$.sections[0].description").isEqualTo("this is a mocked project")
-            .jsonPath("$.sections[0].media.size()").isEqualTo(1)
-            .jsonPath("$.sections[0].mainMedia.mediaType").isEqualTo("video.youtube")
+            ).exchange()
+            .expectStatus()
+            .isCreated
+            .expectBody()
+            .jsonPath("$.id")
+            .exists()
+            .jsonPath("$.projectId")
+            .isEqualTo("567")
+            .jsonPath("$.referenceName")
+            .isEqualTo("newReferenceName")
+            .jsonPath("$..sections.size()")
+            .isEqualTo(1)
+            .jsonPath("$.sections[0].title")
+            .isEqualTo("introduction")
+            .jsonPath("$.sections[0].description")
+            .isEqualTo("this is a mocked project")
+            .jsonPath("$.sections[0].media.size()")
+            .isEqualTo(1)
+            .jsonPath("$.sections[0].mainMedia.mediaType")
+            .isEqualTo("video.youtube")
             .jsonPath("$.sections[0].mainMedia.url")
             .isEqualTo("https://www.youtube.com/watch?v=tHisis4R3soURCeId")
-            .jsonPath("$.sections[0].mainMedia.thumbnailUrl").isEqualTo("http://a.video.jpg")
-            .jsonPath("$.sections[0].mainMedia.resourceId").isEqualTo("tHisis4R3soURCeId")
+            .jsonPath("$.sections[0].mainMedia.thumbnailUrl")
+            .isEqualTo("http://a.video.jpg")
+            .jsonPath("$.sections[0].mainMedia.resourceId")
+            .isEqualTo("tHisis4R3soURCeId")
     }
 
     @Test
     fun `given new persisted presentation - when retrieved - then data matches`() {
-        val projectPresentationBody = ProjectPresentationDto(
-            "789",
-            setOf(SimpleContributor("1", emptySet())),
-            "referenceName2",
-            listOf(
-                PresentationSectionDto(
-                    "introduction",
-                    "this is a mocked project",
-                    listOf(
+        val projectPresentationBody =
+            ProjectPresentationDto(
+                "789",
+                setOf(A6Contributor("1")),
+                "referenceName2",
+                listOf(
+                    PresentationSectionDto(
+                        "introduction",
+                        "this is a mocked project",
+                        listOf(
+                            PresentationMediaDto(
+                                "image",
+                                "http://an.image.jpg",
+                                "http://an.image.jpg",
+                                "an.image.jpg",
+                            ),
+                        ),
                         PresentationMediaDto(
-                            "image",
-                            "http://an.image.jpg",
-                            "http://an.image.jpg",
-                            "an.image.jpg",
+                            "video.youtube",
+                            "https://www.youtube.com/watch?v=tHisis4R3soURCeId",
+                            "http://a.video.jpg",
+                            "tHisis4R3soURCeId",
                         ),
                     ),
-                    PresentationMediaDto(
-                        "video.youtube",
-                        "https://www.youtube.com/watch?v=tHisis4R3soURCeId",
-                        "http://a.video.jpg",
-                        "tHisis4R3soURCeId",
-                    ),
                 ),
-            ),
-        )
-        val newProjectPresentation = webTestClient.post()
-            .uri("/projects-presentation")
-            .accept(MediaType.APPLICATION_JSON)
-            .contentType(MediaTypes.HAL_FORMS_JSON)
-            .body(
-                Mono.just(projectPresentationBody),
-                ProjectPresentationDto::class.java,
             )
-            .exchange()
-            .expectStatus().isCreated
-            .expectBody(ProjectPresentationDto::class.java)
-            .returnResult().responseBody ?: fail("Create operation retrieved empty response")
+        val newProjectPresentation =
+            webTestClient
+                .post()
+                .uri("/projects-presentation")
+                .accept(MediaType.APPLICATION_JSON)
+                .contentType(MediaTypes.HAL_FORMS_JSON)
+                .body(
+                    Mono.just(projectPresentationBody),
+                    ProjectPresentationDto::class.java,
+                ).exchange()
+                .expectStatus()
+                .isCreated
+                .expectBody(ProjectPresentationDto::class.java)
+                .returnResult()
+                .responseBody ?: fail("Create operation retrieved empty response")
 
-        webTestClient.get()
+        webTestClient
+            .get()
             .uri("/projects-presentation/${newProjectPresentation.id}")
             .accept(MediaType.APPLICATION_JSON)
             .exchange()
-            .expectStatus().isOk.expectBody()
-            .jsonPath("$.id").isEqualTo(newProjectPresentation.id!!)
-            .jsonPath("$.projectId").isEqualTo("789")
-            .jsonPath("$.referenceName").isEqualTo("referenceName2")
-            .jsonPath("$..sections.size()").isEqualTo(1)
-            .jsonPath("$.sections[0].title").isEqualTo("introduction")
-            .jsonPath("$.sections[0].description").isEqualTo("this is a mocked project")
-            .jsonPath("$.sections[0].media.size()").isEqualTo(1)
-            .jsonPath("$.sections[0].mainMedia.mediaType").isEqualTo("video.youtube")
+            .expectStatus()
+            .isOk
+            .expectBody()
+            .jsonPath("$.id")
+            .isEqualTo(newProjectPresentation.id!!)
+            .jsonPath("$.projectId")
+            .isEqualTo("789")
+            .jsonPath("$.referenceName")
+            .isEqualTo("referenceName2")
+            .jsonPath("$..sections.size()")
+            .isEqualTo(1)
+            .jsonPath("$.sections[0].title")
+            .isEqualTo("introduction")
+            .jsonPath("$.sections[0].description")
+            .isEqualTo("this is a mocked project")
+            .jsonPath("$.sections[0].media.size()")
+            .isEqualTo(1)
+            .jsonPath("$.sections[0].mainMedia.mediaType")
+            .isEqualTo("video.youtube")
             .jsonPath("$.sections[0].mainMedia.url")
             .isEqualTo("https://www.youtube.com/watch?v=tHisis4R3soURCeId")
-            .jsonPath("$.sections[0].mainMedia.thumbnailUrl").isEqualTo("http://a.video.jpg")
-            .jsonPath("$.sections[0].mainMedia.resourceId").isEqualTo("tHisis4R3soURCeId")
+            .jsonPath("$.sections[0].mainMedia.thumbnailUrl")
+            .isEqualTo("http://a.video.jpg")
+            .jsonPath("$.sections[0].mainMedia.resourceId")
+            .isEqualTo("tHisis4R3soURCeId")
     }
 
     @Test
     fun `when post new Project Presentation without sections - then Created response`() {
-        val projectPresentationBody = """
+        val projectPresentationBody =
+            """
             {
               "projectId": "projectId456",
               "referenceName": "mockedReferenceName"
             }
-        """.trimIndent()
-        webTestClient.post()
+            """.trimIndent()
+        webTestClient
+            .post()
             .uri("/projects-presentation")
             .contentType(MediaTypes.HAL_FORMS_JSON)
             .accept(MediaType.APPLICATION_JSON)
             .body(
                 Mono.just(projectPresentationBody),
                 String::class.java,
-            )
-            .exchange()
-            .expectStatus().isCreated
+            ).exchange()
+            .expectStatus()
+            .isCreated
     }
 
     @Test
     fun `when post new Project Presentation without referenceName - then Bad Request response`() {
-        val projectPresentationBody = """
+        val projectPresentationBody =
+            """
             {
               "projectId": "projectId456",
               "sections": []
             }
-        """.trimIndent()
-        webTestClient.post()
+            """.trimIndent()
+        webTestClient
+            .post()
             .uri("/projects-presentation")
             .contentType(MediaTypes.HAL_FORMS_JSON)
             .accept(MediaType.APPLICATION_JSON)
             .body(
                 Mono.just(projectPresentationBody),
                 String::class.java,
-            )
-            .exchange()
-            .expectStatus().isBadRequest
+            ).exchange()
+            .expectStatus()
+            .isBadRequest
             .expectBody()
-            .jsonPath("$.errorCode").isEqualTo("PROJECT_PRESENTATION_INVALID")
-            .jsonPath("$.error").exists()
-            .jsonPath("$.status").isEqualTo(HttpStatus.BAD_REQUEST.value())
-            .jsonPath("$.message").isEqualTo("ProjectPresentation referenceName expected")
+            .jsonPath("$.errorCode")
+            .isEqualTo("PROJECT_PRESENTATION_INVALID")
+            .jsonPath("$.error")
+            .exists()
+            .jsonPath("$.status")
+            .isEqualTo(HttpStatus.BAD_REQUEST.value())
+            .jsonPath("$.message")
+            .isEqualTo("ProjectPresentation referenceName expected")
     }
 
     @Test
     fun `when post new Project Presentation with empty sections - then Bad Request response`() {
-        val projectPresentationBody = ProjectPresentationDto(
-            "567",
-            setOf(SimpleContributor("1", emptySet())),
-            "referenceName",
-            emptyList(),
-        )
-        webTestClient.post()
+        val projectPresentationBody =
+            ProjectPresentationDto(
+                "567",
+                setOf(A6Contributor("1")),
+                "referenceName",
+                emptyList(),
+            )
+        webTestClient
+            .post()
             .uri("/projects-presentation")
             .accept(MediaType.APPLICATION_JSON)
             .contentType(MediaTypes.HAL_FORMS_JSON)
             .body(
                 Mono.just(projectPresentationBody),
                 ProjectPresentationDto::class.java,
-            )
-            .exchange()
-            .expectStatus().isCreated
+            ).exchange()
+            .expectStatus()
+            .isCreated
     }
 }
